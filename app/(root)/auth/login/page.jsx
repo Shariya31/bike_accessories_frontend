@@ -2,13 +2,14 @@
 
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import Image from "next/image";
-import React from "react";
+import React, { useState } from "react";
 import Logo from "@/public/assets/images/Logo.jpg";
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller, useForm } from "react-hook-form";
 import { zSchema } from "@/lib/zodSchema";
-
+import { FaRegEye } from "react-icons/fa6";
+import { FaRegEyeSlash } from "react-icons/fa6";
 import {
   Field,
   FieldError,
@@ -18,12 +19,17 @@ import {
 
 import { Input } from "@/components/ui/input";
 import ButtonLoading from "@/components/application/ButtonLoading";
-
+import { z } from 'zod'
+import Link from "next/link";
+import { WEBSITE_REGISTER } from "@/routes/WebsiteRoutes";
 const LoginPage = () => {
+  const [loading, setLoading] = useState(false)
+  const [isTypePassword, setIsTypePassword] = useState(true)
   const formSchema = zSchema.pick({
     email: true,
-    password: true,
-  });
+  }).extend({
+    password: z.string().min(1, 'Password is required')
+  })
 
   const form = useForm({
     resolver: zodResolver(formSchema),
@@ -35,8 +41,12 @@ const LoginPage = () => {
   });
 
   const handleLoginSubmit = async (values) => {
-    console.log("Login values:", values);
-    // 👉 call login API here
+    await new Promise((resolve) => {
+      setTimeout(() => {
+        console.log("Login values:", values);
+        resolve();
+      }, 3000);
+    });
   };
 
   return (
@@ -92,12 +102,25 @@ const LoginPage = () => {
               render={({ field, fieldState }) => (
                 <Field data-invalid={fieldState.invalid}>
                   <FieldLabel>Password</FieldLabel>
-                  <Input
-                    {...field}
-                    type="password"
-                    placeholder="Enter your password"
-                    aria-invalid={fieldState.invalid}
-                  />
+
+                  <div className="relative">
+                    <Input
+                      {...field}
+                      type={isTypePassword ? "password" : "text"}
+                      placeholder="Enter your password"
+                      aria-invalid={fieldState.invalid}
+                      className="pr-10"
+                    />
+
+                    <button
+                      type="button"
+                      onClick={() => setIsTypePassword(prev => !prev)}
+                      className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500 hover:text-gray-700 cursor-pointer"
+                    >
+                      {isTypePassword ? <FaRegEyeSlash /> : <FaRegEye />}
+                    </button>
+                  </div>
+
                   {fieldState.error && (
                     <FieldError errors={[fieldState.error]} />
                   )}
@@ -107,11 +130,24 @@ const LoginPage = () => {
           </FieldGroup>
 
           {/* Submit */}
-          <ButtonLoading
-            type="submit"
-            text="Login"
-            loading={form.formState.isSubmitting}
-          />
+          <div className="mb-3">
+            <ButtonLoading
+              type="submit"
+              text="Login"
+              loading={form.formState.isSubmitting}
+              className='w-full cursor-pointer'
+            />
+          </div>
+
+          <div className="text-center">
+              <div className="flex items-center justify-center gap-1.5">
+                <p>Don&apos;t have an account ?</p>
+                <Link href={WEBSITE_REGISTER} className="text-primary">Create Account!</Link>
+              </div>
+              <div className="mt-3"> 
+                <Link href={''} className="text-primary">Forgot Password ?</Link>
+              </div>
+          </div>
         </form>
       </CardContent>
 
