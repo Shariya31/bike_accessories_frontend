@@ -1,4 +1,5 @@
 import { HeroCarousel } from '@/components/application/Carousel/HeroCarousel';
+import { ShopByBike } from '@/components/application/ShopByBike/ShopByBike';
 import { Button } from '@/components/ui/button'
 import React from 'react'
 
@@ -11,7 +12,7 @@ const page = () => {
       {/* POPULAR BIKES */}
       <section>
         <h2 className="text-xl font-semibold mb-4">
-          Popular Bikes
+         <ShopByBike/>
         </h2>
       </section>
 

@@ -40,7 +40,7 @@ export function HeroCarousel() {
         <CarouselContent>
           {slides.map((slide, i) => (
             <CarouselItem key={i}>
-              <div className="relative w-full h-[260px] md:h-[360px] lg:h-[460px] rounded-xl overflow-hidden bg-black">
+              <div className="relative w-full h-65 md:h-90 lg:h-115 rounded-xl overflow-hidden bg-black">
             
                 {/* main image */}
                 <Image

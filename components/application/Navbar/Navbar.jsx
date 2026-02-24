@@ -42,6 +42,7 @@ export function Navbar() {
   return (
     <header className="border-b bg-background">
       <div className="container mx-auto flex h-14 items-center justify-between px-4">
+      <div className="flex items-center gap-3">
 
         {/* LOGO */}
         <Link href="/" className="font-bold text-lg">
@@ -59,7 +60,7 @@ export function Navbar() {
               </NavigationMenuTrigger>
 
               <NavigationMenuContent>
-                <div className="p-6 w-screen max-h-[70vh] overflow-y-auto">
+                <div className="p-6 w-[80vw] max-h-[60vh] overflow-y-auto">
                   <div className="grid grid-cols-[repeat(auto-fit,minmax(180px,1fr))] gap-6">
                     {bikeBrands.map((brand) => (
                       <div key={brand.title}>
@@ -93,7 +94,7 @@ export function Navbar() {
               </NavigationMenuTrigger>
 
               <NavigationMenuContent>
-                <div className="p-6 w-[700px]">
+                <div className="p-6 w-[80vw] max-h-[60vh] overflow-y-auto">
                   <div className="grid grid-cols-[repeat(auto-fit,minmax(180px,1fr))] gap-6">
                     {categories.map((cat) => (
                       <div key={cat.title}>
@@ -122,6 +123,7 @@ export function Navbar() {
 
           </NavigationMenuList>
         </NavigationMenu>
+      </div>
 
         {/* RIGHT */}
         <div className="flex items-center gap-3">
