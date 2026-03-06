@@ -1,6 +1,5 @@
 import { HeroCarousel } from '@/components/application/Carousel/HeroCarousel';
 import { ShopByBike } from '@/components/application/ShopByBike/ShopByBike';
-import { Button } from '@/components/ui/button'
 import React from 'react'
 
 const page = () => {

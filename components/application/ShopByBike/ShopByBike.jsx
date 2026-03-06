@@ -3,6 +3,14 @@
 import Image from "next/image"
 import Link from "next/link"
 
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel"
+
 const bikes = [
   {
     name: "Mountain Bike",
@@ -38,36 +46,108 @@ const bikes = [
 
 export function ShopByBike() {
   return (
-    <section className="w-full py-10">
+    <section className="w-full py-12">
       <div className="px-4 md:px-8">
-        <h2 className="text-2xl font-semibold mb-6">Shop by Bike</h2>
+
+        {/* TITLE */}
+        <h2 className="text-2xl font-semibold mb-8">
+          Shop by Bike
+        </h2>
 
         <div className="relative">
-          <div className="flex gap-5 overflow-x-auto scrollbar-hide snap-x snap-mandatory pb-4">
-            {bikes.map((bike) => (
-              <Link
-                key={bike.slug}
-                href={`/category/${bike.slug}`}
-                className="min-w-[180px] md:min-w-[220px] snap-start"
-              >
-                <div className="rounded-2xl border bg-card hover:shadow-lg transition p-4 flex flex-col items-center">
-                  <div className="relative w-full h-[140px]">
-                    <Image
-                      src={bike.image}
-                      alt={bike.name}
-                      fill
-                      className="object-contain"
-                    />
-                  </div>
 
-                  <p className="mt-3 font-medium text-center">
-                    {bike.name}
-                  </p>
-                </div>
-              </Link>
-            ))}
-          </div>
+          {/* GRADIENT EDGES */}
+          <div className="pointer-events-none absolute left-0 top-0 h-full w-12 bg-gradient-to-r from-background to-transparent z-10" />
+          <div className="pointer-events-none absolute right-0 top-0 h-full w-12 bg-gradient-to-l from-background to-transparent z-10" />
+
+          <Carousel
+            opts={{
+              align: "start",
+              dragFree: true,
+            }}
+            className="w-full"
+          >
+
+            <CarouselContent className="-ml-4">
+
+              {bikes.map((bike) => (
+                <CarouselItem
+                  key={bike.slug}
+                  className="pl-4 basis-[180px] md:basis-[220px]"
+                >
+                  <Link href={`/category/${bike.slug}`}>
+
+                    <div
+                      className="
+                      group
+                      rounded-2xl
+                      border
+                      bg-card
+                      p-5
+                      flex flex-col items-center
+                      transition-all
+                      duration-300
+                      hover:shadow-xl
+                      hover:-translate-y-1
+                      "
+                    >
+
+                      {/* IMAGE */}
+                      <div className="relative w-full h-[140px] overflow-hidden">
+
+                        <Image
+                          src={bike.image}
+                          alt={bike.name}
+                          fill
+                          className="
+                          object-contain
+                          transition-transform
+                          duration-300
+                          group-hover:scale-110
+                          "
+                        />
+
+                      </div>
+
+                      {/* TITLE */}
+                      <p className="mt-4 font-medium text-center">
+                        {bike.name}
+                      </p>
+
+                    </div>
+
+                  </Link>
+                </CarouselItem>
+              ))}
+
+            </CarouselContent>
+
+            {/* NAVIGATION BUTTONS */}
+
+            <CarouselPrevious
+              className="
+              -left-4
+              shadow-md
+              bg-background
+              border
+              hover:bg-accent
+              "
+            />
+
+            <CarouselNext
+              className="
+              -right-4
+              shadow-md
+              bg-background
+              border
+              hover:bg-accent
+              "
+            />
+
+          </Carousel>
+
         </div>
+
       </div>
     </section>
   )

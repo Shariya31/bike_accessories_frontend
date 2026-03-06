@@ -22,7 +22,8 @@ import ButtonLoading from "@/components/application/ButtonLoading";
 import { z } from 'zod'
 import Link from "next/link";
 import { WEBSITE_LOGIN, WEBSITE_REGISTER } from "@/routes/WebsiteRoutes";
-
+import axios from "axios";
+const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL
 const RegisterPage = () => {
     const [loading, setLoading] = useState(false)
     const [isTypePassword, setIsTypePassword] = useState(true)
@@ -49,12 +50,19 @@ const RegisterPage = () => {
     });
 
     const handleRegisterSubmit = async (values) => {
-        await new Promise((resolve) => {
-            setTimeout(() => {
-                console.log("Login values:", values);
-                resolve();
-            }, 3000);
-        });
+        try {
+            setLoading(true);
+            const { data: registerResponse } = await axios.post(`${baseUrl}/api/v1/auth/register`, values)
+            if (!registerResponse.success) {
+                throw new Error(registerResponse.message)
+            }
+            form.reset();
+            alert(registerResponse.message)
+        } catch (error) {
+            alert(error.message)
+        } finally {
+            setLoading(false)
+        }
     };
 
     return (
@@ -195,7 +203,7 @@ const RegisterPage = () => {
                         <ButtonLoading
                             type="submit"
                             text="Register"
-                            loading={form.formState.isSubmitting}
+                            loading={loading}
                             className='w-full cursor-pointer'
                         />
                     </div>
