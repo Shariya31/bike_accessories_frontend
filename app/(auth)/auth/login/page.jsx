@@ -21,12 +21,14 @@ import { Input } from "@/components/ui/input";
 import ButtonLoading from "@/components/application/ButtonLoading";
 import { z } from 'zod'
 import Link from "next/link";
-import { WEBSITE_REGISTER } from "@/routes/WebsiteRoutes";
+import { USER_DASHBOARD, WEBSITE_REGISTER, WEBSITE_RESETPASSWORD } from "@/routes/WebsiteRoutes";
 import axios from 'axios'
 import { showToast } from "@/lib/showToast";
 import OTPVerification from "@/components/application/OTPVerification";
 import { useDispatch } from "react-redux";
 import { login } from "@/store/slices/authSlice";
+import { useRouter, useSearchParams } from "next/navigation";
+import { ADMIN_DASHBOARD } from "@/routes/AdminPannelRoute";
 
 const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL
 const LoginPage = () => {
@@ -36,7 +38,8 @@ const LoginPage = () => {
   const [otpEmail, setOtpEmail] = useState()
 
   const dispatch = useDispatch();
-
+  const searchParams = useSearchParams();
+  const router = useRouter();
   const formSchema = zSchema.pick({
     email: true,
   }).extend({
@@ -71,7 +74,7 @@ const LoginPage = () => {
     }
   };
 
-  const handleOtpVerification = async(values) => {
+  const handleOtpVerification = async (values) => {
     try {
       setOtpVerificationLoading(true);
       const { data: otpVerificationResponse } = await axios.post(`${baseUrl}/api/v1/auth/verify-otp`, values)
@@ -83,6 +86,11 @@ const LoginPage = () => {
       showToast('success', otpVerificationResponse.message)
 
       dispatch(login(otpVerificationResponse.data))
+      if (searchParams.has('callback')) {
+        router.push(searchParams.get('callback'))
+      }else{
+         otpVerificationResponse.data.role === 'admin' ? router.push(ADMIN_DASHBOARD) : router.push(USER_DASHBOARD)
+      }
     } catch (error) {
       console.log(error)
       showToast('error', error.message)
@@ -188,7 +196,7 @@ const LoginPage = () => {
                   <Link href={WEBSITE_REGISTER} className="text-primary">Create Account!</Link>
                 </div>
                 <div className="mt-3">
-                  <Link href={''} className="text-primary">Forgot Password ?</Link>
+                  <Link href={WEBSITE_RESETPASSWORD} className="text-primary">Forgot Password ?</Link>
                 </div>
               </div>
             </form>
