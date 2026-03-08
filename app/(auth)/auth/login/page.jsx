@@ -22,9 +22,21 @@ import ButtonLoading from "@/components/application/ButtonLoading";
 import { z } from 'zod'
 import Link from "next/link";
 import { WEBSITE_REGISTER } from "@/routes/WebsiteRoutes";
+import axios from 'axios'
+import { showToast } from "@/lib/showToast";
+import OTPVerification from "@/components/application/OTPVerification";
+import { useDispatch } from "react-redux";
+import { login } from "@/store/slices/authSlice";
+
+const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL
 const LoginPage = () => {
   const [loading, setLoading] = useState(false)
+  const [otpVerificationLoading, setOtpVerificationLoading] = useState(false)
   const [isTypePassword, setIsTypePassword] = useState(true)
+  const [otpEmail, setOtpEmail] = useState()
+
+  const dispatch = useDispatch();
+
   const formSchema = zSchema.pick({
     email: true,
   }).extend({
@@ -41,13 +53,43 @@ const LoginPage = () => {
   });
 
   const handleLoginSubmit = async (values) => {
-    await new Promise((resolve) => {
-      setTimeout(() => {
-        console.log("Login values:", values);
-        resolve();
-      }, 3000);
-    });
+    try {
+      setLoading(true);
+      const { data: loginResponse } = await axios.post(`${baseUrl}/api/v1/auth/login`, values)
+      console.log(loginResponse)
+      if (!loginResponse.success) {
+        throw new Error(loginResponse.data.message)
+      }
+      setOtpEmail(values.email)
+      form.reset();
+      showToast('success', loginResponse.message)
+    } catch (error) {
+      console.log(error)
+      showToast('error', error.message)
+    } finally {
+      setLoading(false)
+    }
   };
+
+  const handleOtpVerification = async(values) => {
+    try {
+      setOtpVerificationLoading(true);
+      const { data: otpVerificationResponse } = await axios.post(`${baseUrl}/api/v1/auth/verify-otp`, values)
+      console.log(otpVerificationResponse)
+      if (!otpVerificationResponse.success) {
+        throw new Error(otpVerificationResponse.data.message)
+      }
+      setOtpEmail('')
+      showToast('success', otpVerificationResponse.message)
+
+      dispatch(login(otpVerificationResponse.data))
+    } catch (error) {
+      console.log(error)
+      showToast('error', error.message)
+    } finally {
+      setOtpVerificationLoading(false)
+    }
+  }
 
   return (
     <Card className="w-112.5">
@@ -62,93 +104,100 @@ const LoginPage = () => {
             className="max-w-37.5"
           />
         </div>
+        {!otpEmail ?
+          <>
+            {/* Title */}
+            <div className="text-center">
+              <h1 className="text-2xl font-semibold">Login Into Account</h1>
+            </div>
 
-        {/* Title */}
-        <div className="text-center">
-          <h1 className="text-2xl font-semibold">Login Into Account</h1>
-        </div>
-
-        {/* Form */}
-        <form
-          id="login-form"
-          onSubmit={form.handleSubmit(handleLoginSubmit)}
-          className="space-y-4 mt-6"
-        >
-          <FieldGroup>
-            {/* Email */}
-            <Controller
-              name="email"
-              control={form.control}
-              render={({ field, fieldState }) => (
-                <Field data-invalid={fieldState.invalid}>
-                  <FieldLabel>Email</FieldLabel>
-                  <Input
-                    {...field}
-                    type="email"
-                    placeholder="Enter your email"
-                    aria-invalid={fieldState.invalid}
-                  />
-                  {fieldState.error && (
-                    <FieldError errors={[fieldState.error]} />
+            {/* Form */}
+            <form
+              id="login-form"
+              onSubmit={form.handleSubmit(handleLoginSubmit)}
+              className="space-y-4 mt-6"
+            >
+              <FieldGroup>
+                {/* Email */}
+                <Controller
+                  name="email"
+                  control={form.control}
+                  render={({ field, fieldState }) => (
+                    <Field data-invalid={fieldState.invalid}>
+                      <FieldLabel>Email</FieldLabel>
+                      <Input
+                        {...field}
+                        type="email"
+                        placeholder="Enter your email"
+                        aria-invalid={fieldState.invalid}
+                      />
+                      {fieldState.error && (
+                        <FieldError errors={[fieldState.error]} />
+                      )}
+                    </Field>
                   )}
-                </Field>
-              )}
-            />
+                />
 
-            {/* Password */}
-            <Controller
-              name="password"
-              control={form.control}
-              render={({ field, fieldState }) => (
-                <Field data-invalid={fieldState.invalid}>
-                  <FieldLabel>Password</FieldLabel>
+                {/* Password */}
+                <Controller
+                  name="password"
+                  control={form.control}
+                  render={({ field, fieldState }) => (
+                    <Field data-invalid={fieldState.invalid}>
+                      <FieldLabel>Password</FieldLabel>
 
-                  <div className="relative">
-                    <Input
-                      {...field}
-                      type={isTypePassword ? "password" : "text"}
-                      placeholder="Enter your password"
-                      aria-invalid={fieldState.invalid}
-                      className="pr-10"
-                    />
+                      <div className="relative">
+                        <Input
+                          {...field}
+                          type={isTypePassword ? "password" : "text"}
+                          placeholder="Enter your password"
+                          aria-invalid={fieldState.invalid}
+                          className="pr-10"
+                        />
 
-                    <button
-                      type="button"
-                      onClick={() => setIsTypePassword(prev => !prev)}
-                      className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500 hover:text-gray-700 cursor-pointer"
-                    >
-                      {isTypePassword ? <FaRegEyeSlash /> : <FaRegEye />}
-                    </button>
-                  </div>
+                        <button
+                          type="button"
+                          onClick={() => setIsTypePassword(prev => !prev)}
+                          className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500 hover:text-gray-700 cursor-pointer"
+                        >
+                          {isTypePassword ? <FaRegEyeSlash /> : <FaRegEye />}
+                        </button>
+                      </div>
 
-                  {fieldState.error && (
-                    <FieldError errors={[fieldState.error]} />
+                      {fieldState.error && (
+                        <FieldError errors={[fieldState.error]} />
+                      )}
+                    </Field>
                   )}
-                </Field>
-              )}
-            />
-          </FieldGroup>
+                />
+              </FieldGroup>
 
-          {/* Submit */}
-          <div className="mb-3">
-            <ButtonLoading
-              type="submit"
-              text="Login"
-              loading={form.formState.isSubmitting}
-              className='w-full cursor-pointer'
-            />
-          </div>
+              {/* Submit */}
+              <div className="mb-3">
+                <ButtonLoading
+                  type="submit"
+                  text="Login"
+                  loading={form.formState.isSubmitting}
+                  className='w-full cursor-pointer'
+                />
+              </div>
 
-          <div className="text-center">
-              <div className="flex items-center justify-center gap-1.5">
-                <p>Don&apos;t have an account ?</p>
-                <Link href={WEBSITE_REGISTER} className="text-primary">Create Account!</Link>
+              <div className="text-center">
+                <div className="flex items-center justify-center gap-1.5">
+                  <p>Don&apos;t have an account ?</p>
+                  <Link href={WEBSITE_REGISTER} className="text-primary">Create Account!</Link>
+                </div>
+                <div className="mt-3">
+                  <Link href={''} className="text-primary">Forgot Password ?</Link>
+                </div>
               </div>
-              <div className="mt-3"> 
-                <Link href={''} className="text-primary">Forgot Password ?</Link>
-              </div>
-          </div>
-        </form>
+            </form>
+          </>
+          :
+          <>
+            <OTPVerification email={otpEmail} onSubmit={handleOtpVerification} loading={otpVerificationLoading} />
+          </>}
+
       </CardContent>
 
       <CardFooter />

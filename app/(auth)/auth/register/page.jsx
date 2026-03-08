@@ -23,6 +23,7 @@ import { z } from 'zod'
 import Link from "next/link";
 import { WEBSITE_LOGIN, WEBSITE_REGISTER } from "@/routes/WebsiteRoutes";
 import axios from "axios";
+import { showToast } from "@/lib/showToast";
 const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL
 const RegisterPage = () => {
     const [loading, setLoading] = useState(false)
@@ -57,9 +58,9 @@ const RegisterPage = () => {
                 throw new Error(registerResponse.message)
             }
             form.reset();
-            alert(registerResponse.message)
+            showToast('success', registerResponse.message)
         } catch (error) {
-            alert(error.message)
+            showToast('error', error.message)
         } finally {
             setLoading(false)
         }
