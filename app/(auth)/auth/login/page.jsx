@@ -4,6 +4,7 @@ import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import Image from "next/image";
 import React, { useState } from "react";
 import Logo from "@/public/assets/images/Logo.jpg";
+import { GoogleLogin } from "@react-oauth/google";
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller, useForm } from "react-hook-form";
@@ -88,8 +89,8 @@ const LoginPage = () => {
       dispatch(login(otpVerificationResponse.data))
       if (searchParams.has('callback')) {
         router.push(searchParams.get('callback'))
-      }else{
-         otpVerificationResponse.data.role === 'admin' ? router.push(ADMIN_DASHBOARD) : router.push(USER_DASHBOARD)
+      } else {
+        otpVerificationResponse.data.role === 'admin' ? router.push(ADMIN_DASHBOARD) : router.push(USER_DASHBOARD)
       }
     } catch (error) {
       console.log(error)
@@ -189,6 +190,19 @@ const LoginPage = () => {
                   className='w-full cursor-pointer'
                 />
               </div>
+
+              <GoogleLogin
+                onSuccess={async (credentialResponse) => {
+                  await axios.post(
+                    `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/auth/google`,
+                    { credential: credentialResponse.credential },
+                    { withCredentials: true }
+                  );
+                }}
+                onError={() => {
+                  console.log("Login Failed");
+                }}
+              />
 
               <div className="text-center">
                 <div className="flex items-center justify-center gap-1.5">
