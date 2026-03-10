@@ -54,13 +54,13 @@ const RegisterPage = () => {
         try {
             setLoading(true);
             const { data: registerResponse } = await axios.post(`${baseUrl}/api/v1/auth/register`, values)
-            if (!registerResponse.success) {
-                throw new Error(registerResponse.message)
-            }
             form.reset();
             showToast('success', registerResponse.message)
         } catch (error) {
-            showToast('error', error.message)
+            const message =
+                error.response?.data?.message || error.message;
+
+            showToast('error', message);
         } finally {
             setLoading(false)
         }

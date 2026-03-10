@@ -40,16 +40,14 @@ const ResetPasswordPage = () => {
         try {
             setEmailVerificationLoading(true);
             const { data: sendOtpResponse } = await axios.post(`${baseUrl}/api/v1/auth/reset-password/send-otp`, values)
-            console.log(sendOtpResponse)
-            if (!sendOtpResponse.success) {
-                throw new Error(sendOtpResponse.data.message)
-            }
             setOtpEmail(values.email)
             showToast('success', sendOtpResponse.message)
 
         } catch (error) {
-            console.log(error)
-            showToast('error', error.message)
+            const message =
+                error.response?.data?.message || error.message;
+
+            showToast('error', message);
         } finally {
             setEmailVerificationLoading(false)
         }
@@ -148,7 +146,7 @@ const ResetPasswordPage = () => {
                             </>
                             :
                             <>
-                                <UpdatePassword email={otpEmail}/>
+                                <UpdatePassword email={otpEmail} />
                             </>}
 
                     </>}

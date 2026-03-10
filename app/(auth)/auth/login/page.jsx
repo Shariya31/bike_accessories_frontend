@@ -60,16 +60,15 @@ const LoginPage = () => {
     try {
       setLoading(true);
       const { data: loginResponse } = await axios.post(`${baseUrl}/api/v1/auth/login`, values)
-      console.log(loginResponse)
-      if (!loginResponse.success) {
-        throw new Error(loginResponse.data.message)
-      }
+
       setOtpEmail(values.email)
       form.reset();
       showToast('success', loginResponse.message)
     } catch (error) {
-      console.log(error)
-      showToast('error', error.message)
+      const message =
+        error.response?.data?.message || error.message;
+
+      showToast('error', message);
     } finally {
       setLoading(false)
     }
@@ -93,8 +92,10 @@ const LoginPage = () => {
         otpVerificationResponse.data.role === 'admin' ? router.push(ADMIN_DASHBOARD) : router.push(USER_DASHBOARD)
       }
     } catch (error) {
-      console.log(error)
-      showToast('error', error.message)
+      const message =
+        error.response?.data?.message || error.message;
+
+      showToast('error', message);
     } finally {
       setOtpVerificationLoading(false)
     }
