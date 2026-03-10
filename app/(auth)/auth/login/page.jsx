@@ -100,6 +100,39 @@ const LoginPage = () => {
     }
   }
 
+  const handleGoogleLogin = async (credentialResponse) => {
+    try {
+      const { data: gooleLoginResponse } = await axios.post(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/auth/google`,
+        {
+          credential: credentialResponse.credential,
+        },
+        {
+          withCredentials: true,
+        }
+      );
+
+      console.log("Login success", gooleLoginResponse);
+
+      showToast('success', gooleLoginResponse.message)
+
+      dispatch(login(gooleLoginResponse.data))
+
+      if (searchParams.has('callback')) {
+        router.push(searchParams.get('callback'))
+      } else {
+        gooleLoginResponse.data.role === 'admin' ? router.push(ADMIN_DASHBOARD) : router.push(USER_DASHBOARD)
+      }
+
+    } catch (error) {
+      console.error("Google login error", error);
+    }
+  };
+
+  const handleGoogleError = () => {
+    console.log("Login Failed");
+  };
+
   return (
     <Card className="w-112.5">
       <CardContent>
@@ -192,16 +225,9 @@ const LoginPage = () => {
               </div>
 
               <GoogleLogin
-                onSuccess={async (credentialResponse) => {
-                  await axios.post(
-                    `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/auth/google`,
-                    { credential: credentialResponse.credential },
-                    { withCredentials: true }
-                  );
-                }}
-                onError={() => {
-                  console.log("Login Failed");
-                }}
+                onSuccess={handleGoogleLogin}
+                onError={handleGoogleError}
+                text="continue_with"
               />
 
               <div className="text-center">
