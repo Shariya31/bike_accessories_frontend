@@ -4,6 +4,7 @@ import { Assistant } from 'next/font/google'
 import GlobalProvider from "@/components/application/GlobalProvider/GlobalProvider";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 import GoogleProvider from "@/components/application/GoogleProvider/GoogleProvider";
+import ReactQueryProvider from "@/components/application/ReactQueryProvider/ReactQueryProvider";
 
 const assistantFont = Assistant({
   weight: ['400', '500', '600', '700', '800'],
@@ -18,12 +19,12 @@ export default function RootLayout({ children }) {
         className={`${assistantFont.className} antialiased`}
       >
         <GoogleProvider>
-
-          <GlobalProvider>
-
-            <ToastContainer />
-            {children}
-          </GlobalProvider>
+          <ReactQueryProvider>
+            <GlobalProvider>
+              <ToastContainer />
+              {children}
+            </GlobalProvider>
+          </ReactQueryProvider>
         </GoogleProvider>
       </body>
     </html>

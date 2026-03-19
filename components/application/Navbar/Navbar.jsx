@@ -28,7 +28,12 @@ import {
 } from "@/components/ui/sheet";
 
 import { bikeSidebarData } from "@/components/application/Sidebar/sidebarData";
-
+import { useAuth } from "@/hooks/auth/useAuth";
+import { useLogout } from "@/hooks/auth/useLogout";
+import { useDispatch } from "react-redux";
+import { logout as reduxLogout } from '../../../store/slices/authSlice'
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 export function Navbar() {
   const bikeBrands = bikeSidebarData.filter(
     (item) =>
@@ -38,6 +43,29 @@ export function Navbar() {
   const categories = bikeSidebarData.filter((item) =>
     ["Protections", "Lighting", "Accessories"].includes(item.title)
   );
+
+  const { data: user, isError, isLoading } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (isError) {
+      router.push("/auth/login");
+    }
+  }, [isError]);
+
+  const { mutateAsync: logout, isPending } = useLogout();
+  // const dispatch = useDispatch();
+  const handleLogout = async () => {
+    try {
+      const res = await logout();
+      console.log(res.status, 'res')
+      if (res?.status === 200) {
+        // dispatch(reduxLogout())
+      }
+    } catch (error) {
+      console.error("Logout failed", error);
+    }
+  };
 
   return (
     <header className="sticky top-0 z-50 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -218,7 +246,8 @@ export function Navbar() {
           >
             Login
           </Link>
-
+          <button onClick={handleLogout}>Logout</button>
+          {user?.name}
           {/* MOBILE MENU */}
           <Sheet>
             <SheetTrigger className="md:hidden p-2 rounded-md border border-border hover:bg-accent transition">
