@@ -5,12 +5,12 @@ import Image from "next/image";
 import React, { useState } from "react";
 import Logo from "@/public/assets/images/Logo.jpg";
 import { GoogleLogin } from "@react-oauth/google";
-
+import {login as reduxLogin} from '../../../../store/slices/authSlice'
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller, useForm } from "react-hook-form";
 import { zSchema } from "@/lib/zodSchema";
-import { FaRegEye } from "react-icons/fa6";
-import { FaRegEyeSlash } from "react-icons/fa6";
+import { FaRegEye, FaRegEyeSlash } from "react-icons/fa6";
+
 import {
   Field,
   FieldError,
@@ -20,32 +20,41 @@ import {
 
 import { Input } from "@/components/ui/input";
 import ButtonLoading from "@/components/application/ButtonLoading";
-import { z } from 'zod'
 import Link from "next/link";
-import { USER_DASHBOARD, WEBSITE_REGISTER, WEBSITE_RESETPASSWORD } from "@/routes/WebsiteRoutes";
-import axios from 'axios'
+import {
+  USER_DASHBOARD,
+  WEBSITE_REGISTER,
+  WEBSITE_RESETPASSWORD,
+} from "@/routes/WebsiteRoutes";
+
 import { showToast } from "@/lib/showToast";
 import OTPVerification from "@/components/application/OTPVerification";
-import { useDispatch } from "react-redux";
-import { login } from "@/store/slices/authSlice";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ADMIN_DASHBOARD } from "@/routes/AdminPannelRoute";
+import {z} from 'zod';
+// 🔥 Hooks
+import { useLogin } from "@/hooks/auth/useLogin";
+import { useVerifyOtp } from "@/hooks/auth/useVerifyOtp";
+import { useGoogleAuth } from "@/hooks/auth/useGoogleAuth";
+import { useDispatch } from "react-redux";
 
-const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL
 const LoginPage = () => {
-  const [loading, setLoading] = useState(false)
-  const [otpVerificationLoading, setOtpVerificationLoading] = useState(false)
-  const [isTypePassword, setIsTypePassword] = useState(true)
-  const [otpEmail, setOtpEmail] = useState()
+  const [isTypePassword, setIsTypePassword] = useState(true);
+  const [otpEmail, setOtpEmail] = useState("");
 
-  const dispatch = useDispatch();
-  const searchParams = useSearchParams();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const dispatch = useDispatch()
+
+  const { mutateAsync: login, isPending: loginLoading } = useLogin();
+  const { mutateAsync: verifyOtp, isPending: otpLoading } = useVerifyOtp();
+  const { mutateAsync: googleLogin, isPending: googleLoginLoading } = useGoogleAuth();
+
   const formSchema = zSchema.pick({
     email: true,
   }).extend({
-    password: z.string().min(1, 'Password is required')
-  })
+    password: z.string().min(1, "Password is required"),
+  });
 
   const form = useForm({
     resolver: zodResolver(formSchema),
@@ -53,85 +62,67 @@ const LoginPage = () => {
       email: "",
       password: "",
     },
-    mode: "onSubmit",
   });
 
+  // 🔥 LOGIN
   const handleLoginSubmit = async (values) => {
     try {
-      setLoading(true);
-      const { data: loginResponse } = await axios.post(`${baseUrl}/api/v1/auth/login`, values)
+      const res = await login(values);
 
-      setOtpEmail(values.email)
+      setOtpEmail(values.email);
       form.reset();
-      showToast('success', loginResponse.message)
-    } catch (error) {
-      const message =
-        error.response?.data?.message || error.message;
 
-      showToast('error', message);
-    } finally {
-      setLoading(false)
+      showToast("success", res.data.message);
+    } catch (error) {
+      showToast("error", error.response?.data?.message);
     }
   };
 
+  // 🔥 VERIFY OTP
   const handleOtpVerification = async (values) => {
     try {
-      setOtpVerificationLoading(true);
-      const { data: otpVerificationResponse } = await axios.post(`${baseUrl}/api/v1/auth/verify-otp`, values)
-      console.log(otpVerificationResponse)
-      if (!otpVerificationResponse.success) {
-        throw new Error(otpVerificationResponse.data.message)
-      }
-      setOtpEmail('')
-      showToast('success', otpVerificationResponse.message)
+      const res = await verifyOtp(values);
 
-      dispatch(login(otpVerificationResponse.data))
-      if (searchParams.has('callback')) {
-        router.push(searchParams.get('callback'))
+      showToast("success", res.data.message);
+      setOtpEmail("");
+
+      const user = res.data.data;
+
+      if (searchParams.has("callback")) {
+        router.push(searchParams.get("callback"));
       } else {
-        otpVerificationResponse.data.role === 'admin' ? router.push(ADMIN_DASHBOARD) : router.push(USER_DASHBOARD)
+        user.role === "admin"
+          ? router.push(ADMIN_DASHBOARD)
+          : router.push(USER_DASHBOARD);
       }
     } catch (error) {
-      const message =
-        error.response?.data?.message || error.message;
-
-      showToast('error', message);
-    } finally {
-      setOtpVerificationLoading(false)
-    }
-  }
-
-  const handleGoogleLogin = async (credentialResponse) => {
-    try {
-      const { data: gooleLoginResponse } = await axios.post(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/auth/google`,
-        {
-          credential: credentialResponse.credential,
-        },
-        {
-          withCredentials: true,
-        }
-      );
-
-      console.log("Login success", gooleLoginResponse);
-
-      showToast('success', gooleLoginResponse.message)
-
-      dispatch(login(gooleLoginResponse.data))
-
-      if (searchParams.has('callback')) {
-        router.push(searchParams.get('callback'))
-      } else {
-        gooleLoginResponse.data.role === 'admin' ? router.push(ADMIN_DASHBOARD) : router.push(USER_DASHBOARD)
-      }
-
-    } catch (error) {
-      console.error("Google login error", error);
+      showToast("error", error.response?.data?.message);
     }
   };
 
-  const handleGoogleError = () => {
-    console.log("Login Failed");
+  // 🔥 GOOGLE LOGIN
+  const handleGoogleLogin = async (credentialResponse) => {
+    try {
+      const {data: gooleLoginResponse} = await googleLogin({
+        credential: credentialResponse.credential,
+      });
+
+      showToast("success", gooleLoginResponse.message);
+
+      const user = gooleLoginResponse.data;
+
+      dispatch(reduxLogin(user));
+
+      if (searchParams.has("callback")) {
+        router.push(searchParams.get("callback"));
+      } else {
+        user.role === "admin"
+          ? router.push(ADMIN_DASHBOARD)
+          : router.push(USER_DASHBOARD);
+      }
+    } catch (error) {
+      showToast("error", error.response?.data?.message);
+    }
   };
 
   return (
@@ -147,16 +138,18 @@ const LoginPage = () => {
             className="max-w-37.5"
           />
         </div>
-        {!otpEmail ?
+
+        {!otpEmail ? (
           <>
             {/* Title */}
             <div className="text-center">
-              <h1 className="text-2xl font-semibold">Login Into Account</h1>
+              <h1 className="text-2xl font-semibold">
+                Login Into Account
+              </h1>
             </div>
 
             {/* Form */}
             <form
-              id="login-form"
               onSubmit={form.handleSubmit(handleLoginSubmit)}
               className="space-y-4 mt-6"
             >
@@ -168,12 +161,7 @@ const LoginPage = () => {
                   render={({ field, fieldState }) => (
                     <Field data-invalid={fieldState.invalid}>
                       <FieldLabel>Email</FieldLabel>
-                      <Input
-                        {...field}
-                        type="email"
-                        placeholder="Enter your email"
-                        aria-invalid={fieldState.invalid}
-                      />
+                      <Input {...field} type="email" />
                       {fieldState.error && (
                         <FieldError errors={[fieldState.error]} />
                       )}
@@ -193,17 +181,21 @@ const LoginPage = () => {
                         <Input
                           {...field}
                           type={isTypePassword ? "password" : "text"}
-                          placeholder="Enter your password"
-                          aria-invalid={fieldState.invalid}
                           className="pr-10"
                         />
 
                         <button
                           type="button"
-                          onClick={() => setIsTypePassword(prev => !prev)}
-                          className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500 hover:text-gray-700 cursor-pointer"
+                          onClick={() =>
+                            setIsTypePassword((prev) => !prev)
+                          }
+                          className="absolute right-3 top-2"
                         >
-                          {isTypePassword ? <FaRegEyeSlash /> : <FaRegEye />}
+                          {isTypePassword ? (
+                            <FaRegEyeSlash />
+                          ) : (
+                            <FaRegEye />
+                          )}
                         </button>
                       </div>
 
@@ -216,37 +208,45 @@ const LoginPage = () => {
               </FieldGroup>
 
               {/* Submit */}
-              <div className="mb-3">
-                <ButtonLoading
-                  type="submit"
-                  text="Login"
-                  loading={form.formState.isSubmitting}
-                  className='w-full cursor-pointer'
-                />
-              </div>
+              <ButtonLoading
+                type="submit"
+                text="Login"
+                loading={loginLoading}
+                className="w-full"
+              />
 
+              {/* Google */}
               <GoogleLogin
                 onSuccess={handleGoogleLogin}
-                onError={handleGoogleError}
+                onError={() => console.log("Login Failed")}
+                disabled={googleLoginLoading}
                 text="continue_with"
               />
 
+              {/* Links */}
               <div className="text-center">
-                <div className="flex items-center justify-center gap-1.5">
-                  <p>Don&apos;t have an account ?</p>
-                  <Link href={WEBSITE_REGISTER} className="text-primary">Create Account!</Link>
+                <div className="flex justify-center gap-1.5">
+                  <p>Don&apos;t have an account?</p>
+                  <Link href={WEBSITE_REGISTER} className="text-primary">
+                    Create Account!
+                  </Link>
                 </div>
+
                 <div className="mt-3">
-                  <Link href={WEBSITE_RESETPASSWORD} className="text-primary">Forgot Password ?</Link>
+                  <Link href={WEBSITE_RESETPASSWORD} className="text-primary">
+                    Forgot Password?
+                  </Link>
                 </div>
               </div>
             </form>
           </>
-          :
-          <>
-            <OTPVerification email={otpEmail} onSubmit={handleOtpVerification} loading={otpVerificationLoading} />
-          </>}
-
+        ) : (
+          <OTPVerification
+            email={otpEmail}
+            onSubmit={handleOtpVerification}
+            loading={otpLoading}
+          />
+        )}
       </CardContent>
 
       <CardFooter />

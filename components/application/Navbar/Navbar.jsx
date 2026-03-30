@@ -54,13 +54,13 @@ export function Navbar() {
   }, [isError]);
 
   const { mutateAsync: logout, isPending } = useLogout();
-  // const dispatch = useDispatch();
+  const dispatch = useDispatch();
   const handleLogout = async () => {
     try {
       const res = await logout();
       console.log(res.status, 'res')
       if (res?.status === 200) {
-        // dispatch(reduxLogout())
+        dispatch(reduxLogout())
       }
     } catch (error) {
       console.error("Logout failed", error);
