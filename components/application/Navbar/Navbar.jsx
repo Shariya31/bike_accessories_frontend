@@ -29,11 +29,10 @@ import {
 
 import { bikeSidebarData } from "@/components/application/Sidebar/sidebarData";
 import { useAuth } from "@/hooks/auth/useAuth";
-import { useLogout } from "@/hooks/auth/useLogout";
-import { useDispatch } from "react-redux";
-import { logout as reduxLogout } from '../../../store/slices/authSlice'
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
+import LogoutButton from "../admin/LogoutButton";
+import { DropdownMenu } from "@/components/ui/dropdown-menu";
 export function Navbar() {
   const bikeBrands = bikeSidebarData.filter(
     (item) =>
@@ -52,20 +51,6 @@ export function Navbar() {
       router.push("/auth/login");
     }
   }, [isError]);
-
-  const { mutateAsync: logout, isPending } = useLogout();
-  const dispatch = useDispatch();
-  const handleLogout = async () => {
-    try {
-      const res = await logout();
-      console.log(res.status, 'res')
-      if (res?.status === 200) {
-        dispatch(reduxLogout())
-      }
-    } catch (error) {
-      console.error("Logout failed", error);
-    }
-  };
 
   return (
     <header className="sticky top-0 z-50 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -246,7 +231,9 @@ export function Navbar() {
           >
             Login
           </Link>
-          <button onClick={handleLogout}>Logout</button>
+          {/* <button onClick={handleLogout}>Logout</button> */}
+
+          <LogoutButton />
           {user?.name}
           {/* MOBILE MENU */}
           <Sheet>

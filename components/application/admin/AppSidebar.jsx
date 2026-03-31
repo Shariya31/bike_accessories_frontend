@@ -1,11 +1,9 @@
+'use client'
 import React from 'react'
 import {
     Sidebar,
     SidebarContent,
     SidebarFooter,
-    SidebarGroup,
-    SidebarGroupContent,
-    SidebarGroupLabel,
     SidebarHeader,
     SidebarMenu,
     SidebarMenuButton,
@@ -13,6 +11,7 @@ import {
     SidebarMenuSub,
     SidebarMenuSubButton,
     SidebarMenuSubItem,
+    useSidebar,
 } from "@/components/ui/sidebar"
 import Image from 'next/image'
 import LogoBlack from '../../../public/assets/images/Logo.jpg'
@@ -25,13 +24,15 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import Link from 'next/link'
 
 const AppSidebar = () => {
+  const {toggleSidebar} = useSidebar()
+
     return (
         <Sidebar className='z-50'>
             <SidebarHeader className='border-b h-14 p-0'>
                 <div className='flex justify-between items-center px-4'>
                     <Image src={LogoBlack.src} alt='Logo' height={50} width={LogoBlack.width} className='block dark:hidden h-12.5 w-auto' />
                     <Image src={LogoWhite.src} alt='Logo' height={50} width={LogoWhite.width} className='hidden dark:block h-12.5 w-auto' />
-                    <Button type='button' size='icon' className='md:hidden'>
+                    <Button onClick={toggleSidebar} type='button' size='icon' className='md:hidden'>
                         <IoMdClose />
                     </Button>
                 </div>

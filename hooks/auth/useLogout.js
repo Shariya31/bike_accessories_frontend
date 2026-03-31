@@ -10,7 +10,7 @@ export const useLogout = () => {
     onSuccess: async() => {
       await queryClient.cancelQueries()
       queryClient.clear(); // 🔥 remove all cache
-      window.location.href = "/auth/login";
+      // window.location.href = "/auth/login";
     },
   });
 };
