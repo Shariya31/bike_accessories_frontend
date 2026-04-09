@@ -25,7 +25,7 @@ const LogoutButton = () => {
         }
     };
     return (
-        <span disabled={isPending} onClick={handleLogout} className='flex gap-2'>
+        <span disabled={isPending} onClick={handleLogout} className='flex justify-center items-center gap-2 cursor-pointer'>
             <AiOutlineLogout color='red'/>
              {isPending ? 'Logging out...' : 'Logout'}
         </span>
