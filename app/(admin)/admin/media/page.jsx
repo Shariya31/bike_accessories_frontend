@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { Checkbox } from '@/components/ui/checkbox'
+import useDeleteMedia from '@/hooks/media/useDeleteMedia'
 
 const breadcrumbData = [
   {
@@ -39,8 +40,23 @@ const MediaPage = () => {
     deleteType,
   });
 
-  const handleDelete = (selectedMedia, deleteType) => {
 
+  const deleteMutation = useDeleteMedia()
+
+  const handleDelete = (ids, deleteType) => {
+    console.log(deleteType, 'deleteType')
+    const deleteEndpoint = deleteType === 'PD' ? '/api/v1/media/delete' : '/api/v1/media/update-status'
+    let c = true
+    if(deleteType === "PD"){
+      c = confirm("Are you sure you want to delete the media permanently")
+    }
+
+    if(c){
+      deleteMutation.mutate({ids, deleteType, deleteEndpoint})
+    }
+
+    setSelectAll(false);
+    setSelectedMedia([])
   }
 
   const handleSelectAll = () => {
@@ -131,6 +147,7 @@ const MediaPage = () => {
               </div>
             </div>
           }
+
           {status === 'pending' ?
             <>
               <div>Loading...</div>
@@ -142,14 +159,16 @@ const MediaPage = () => {
               </>
               :
               <>
+              {data.pages.flatMap(page => page.media.map(media => media._id)).length === 0 && 
+              <div className='text-center'>
+                No Data Found
+                </div>}
                 <div className='grid lg:grid-cols-6 sm:grid-cols-3 grid-cols-2 gap-2 mb-5'>
                   {data?.pages?.map((page, index) => (
                     <React.Fragment key={index}>
                       {
                         page?.media?.map((item) => (
-                          // <div key={item._id}>
-                          //   {item._id}
-                          // </div>
+                          
                           <Media key={item._id}
                             media={item}
                             handleDelete={handleDelete}

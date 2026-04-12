@@ -4,7 +4,7 @@ import { useInfiniteQuery } from "@tanstack/react-query";
 
 export const useGetMedia = ({ limit = 10, deleteType = "SD" }) => {
     return useInfiniteQuery({
-        queryKey: [QUERY_KEYS.MEDIA, deleteType],
+        queryKey: [...QUERY_KEYS.MEDIA, limit, deleteType],
         queryFn: async ({ pageParam = 0 }) => {
             const { data } = await getMediaApi({ page: pageParam, limit, deleteType });
 

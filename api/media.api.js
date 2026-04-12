@@ -11,3 +11,13 @@ export const getMediaApi = ({ page = 0, limit = 10, deleteType = "SD" }) =>
       deleteType,
     },
   });
+
+//add endpoint as a parameter if endpoint is dynamic
+export const deleteMediaApi = async ({ ids, deleteType, deleteEndpoint }) => {
+  const { data } = await API({
+    url: deleteEndpoint, // or pass dynamically if needed url: endpoint
+    method: deleteType === "PD" ? "DELETE" : "PUT",
+    data: {payload: { ids, deleteType }}
+  });
+  return data
+}

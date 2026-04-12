@@ -2,7 +2,7 @@ import { useLogout } from '@/hooks/auth/useLogout';
 import React from 'react'
 import { useDispatch } from 'react-redux';
 import { logout as reduxLogout } from '../../../store/slices/authSlice'
-import {AiOutlineLogout} from 'react-icons/ai'
+import { AiOutlineLogout } from 'react-icons/ai'
 import { showToast } from '@/lib/showToast';
 import { useRouter } from 'next/navigation';
 import { WEBSITE_LOGIN } from '@/routes/WebsiteRoutes';
@@ -11,7 +11,7 @@ const LogoutButton = () => {
     const dispatch = useDispatch();
     const router = useRouter()
     const handleLogout = async () => {
-         if (isPending) return;
+        if (isPending) return;
         try {
             const res = await logout();
             console.log(res.status, 'res')
@@ -26,8 +26,8 @@ const LogoutButton = () => {
     };
     return (
         <span disabled={isPending} onClick={handleLogout} className='flex justify-center items-center gap-2 cursor-pointer'>
-            <AiOutlineLogout color='red'/>
-             {isPending ? 'Logging out...' : 'Logout'}
+            <AiOutlineLogout color='red' />
+            {isPending ? 'Logging out...' : 'Logout'}
         </span>
     )
 }

@@ -12,7 +12,7 @@ const UploadMedia = ({ isMultiple }) => {
     }
 
     const handleOnQueuesEnd = async (results) => {
-        // console.log(results, 'results')
+        console.log(results, 'results')
         const files = results.info.files
 
         const uploadedFiles = files.filter(file => file.uploadInfo).map(file => ({
@@ -59,7 +59,6 @@ const UploadMedia = ({ isMultiple }) => {
             options={{
                 multiple: isMultiple,
                 sources: ['local', 'url', 'unsplash', 'google_drive'],
-                maxFiles: 5
             }}
         >
 
