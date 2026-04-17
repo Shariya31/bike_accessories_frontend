@@ -21,3 +21,6 @@ export const deleteMediaApi = async ({ ids, deleteType, deleteEndpoint }) => {
   });
   return data
 }
+
+export const getMediaById = (id) => 
+  API.get(`/api/v1/media/get-media/${id}`)

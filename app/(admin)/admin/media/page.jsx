@@ -11,6 +11,7 @@ import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { Checkbox } from '@/components/ui/checkbox'
 import useDeleteMedia from '@/hooks/media/useDeleteMedia'
+import ButtonLoading from '@/components/application/ButtonLoading'
 
 const breadcrumbData = [
   {
@@ -32,7 +33,6 @@ const MediaPage = () => {
     error,
     fetchNextPage,
     hasNextPage,
-    isFetchingNextPage,
     isFetching,
     status
   } = useGetMedia({
@@ -96,7 +96,7 @@ const MediaPage = () => {
               {deleteType === 'SD' ? 'Media' : 'Media Trash'}
             </h4>
             <div className='flex items-center gap-5'>
-              {deleteType === 'SD' && <UploadMedia />}
+              {deleteType === 'SD' && <UploadMedia isMultiple={true}/>}
               <div className='flex gap-3'>
                 {
                   deleteType === 'SD' ?
@@ -116,7 +116,7 @@ const MediaPage = () => {
             </div>
           </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className='pb-5'>
           {selectedMedia.length > 0 &&
             <div className='py-2 px-3 mb-2 rounded flex justify-between items-center'>
               <label>
@@ -182,6 +182,11 @@ const MediaPage = () => {
                   ))}
                 </div>
               </>
+          }
+
+          {
+            hasNextPage && 
+            <ButtonLoading className='cursor-pointer' type='button' loading={isFetching} onClick={()=>fetchNextPage()} text='Load More'/>
           }
         </CardContent>
       </Card>
