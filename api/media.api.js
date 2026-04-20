@@ -17,10 +17,22 @@ export const deleteMediaApi = async ({ ids, deleteType, deleteEndpoint }) => {
   const { data } = await API({
     url: deleteEndpoint, // or pass dynamically if needed url: endpoint
     method: deleteType === "PD" ? "DELETE" : "PUT",
-    data: {payload: { ids, deleteType }}
+    data: { payload: { ids, deleteType } }
   });
   return data
 }
 
-export const getMediaById = (id) => 
+export const getMediaById = (id) =>
   API.get(`/api/v1/media/get-media/${id}`)
+
+export const updateMediaApi = async ({ _id, alt, title }) => {
+  const { data } = await API.put('/api/v1/media/update-media', {
+      payload: {
+        _id,
+        alt,
+        title
+      }
+    }
+  )
+  return data
+}
