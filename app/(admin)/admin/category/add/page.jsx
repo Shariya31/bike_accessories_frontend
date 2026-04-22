@@ -10,6 +10,8 @@ import { ADMIN_CATEGORY_SHOW, ADMIN_DASHBOARD } from '@/routes/AdminPannelRoute'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { zSchema } from '@/lib/zodSchema'
 import slugify from 'slugify'
+import { useCreateCategory } from '@/hooks/category/useCreateCategory'
+import { showToast } from '@/lib/showToast'
 
 const breadcrumbData = [
     {
@@ -26,6 +28,7 @@ const breadcrumbData = [
 const AddCategory = () => {
     const [loading, setLoading] = useState(false)
 
+    const { mutateAsync: createCategory, isPending } = useCreateCategory()
 
     const formSchema = zSchema.pick({
         name: true,
@@ -40,15 +43,31 @@ const AddCategory = () => {
         },
     });
 
-    useEffect(()=>{
+    useEffect(() => {
         const name = form.getValues('name');
-        if(name){
+        if (name) {
             form.setValue('slug', slugify(name).toLowerCase())
         }
     }, [form.watch('name')])
 
-    const onSubmit = (values) => {
+    const onSubmit = async (values) => {
+        try {
+            setLoading(true)
+            const {data:response} = await createCategory({
+                payload: values
+            })
 
+            if (!response.success) {
+                throw new Error(response.message, 'Unable to create category')
+            }
+            form.reset()
+            showToast('success', response.message)
+        } catch (error) {
+            showToast('error',
+                error?.response?.data?.message || error.message || 'Failed to create category')
+        } finally {
+            setLoading(false)
+        }
     }
 
     return (
@@ -101,7 +120,7 @@ const AddCategory = () => {
                         {/* Submit */}
                         <ButtonLoading
                             type="submit"
-                            text="Update Media"
+                            text="Add Category"
                             loading={loading}
                             className="cursor-pointer"
                         />
