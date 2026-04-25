@@ -9,7 +9,12 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.1",
     "@hookform/resolvers": "^5.2.2",
+    "@mui/icons-material": "^9.0.0",
+    "@mui/material": "^9.0.0",
+    "@mui/x-date-pickers": "^9.0.2",
     "@react-oauth/google": "^0.13.4",
     "@reduxjs/toolkit": "^2.11.2",
     "@splinetool/react-spline": "^4.1.0",
@@ -20,8 +25,10 @@
     "clsx": "^2.1.1",
     "embla-carousel-autoplay": "^8.6.0",
     "embla-carousel-react": "^8.6.0",
+    "export-to-csv": "^1.4.0",
     "input-otp": "^1.4.2",
     "lucide-react": "^0.574.0",
+    "material-react-table": "^3.2.1",
     "mongoose": "^9.2.1",
     "next": "16.1.6",
     "next-cloudinary": "^6.17.5",
