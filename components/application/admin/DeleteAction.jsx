@@ -3,7 +3,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 
 const DeleteAction = ({ handleDelete, row, deleteType }) => {
     return (
-        <MenuItem key='delete' onClick={()=>handleDelete([row.original_id], deleteType)}>
+        <MenuItem key='delete' onClick={()=>handleDelete([row.original._id], deleteType)}>
             <ListItemIcon>
                 <DeleteIcon />
             </ListItemIcon>

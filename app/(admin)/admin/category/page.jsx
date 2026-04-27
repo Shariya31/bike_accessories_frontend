@@ -39,7 +39,7 @@ const ShowCategory = () => {
   return (
     <div>
        <BreadCrumb breadcrumbData={breadcrumbData} />
-            <Card className='py-0 rounded shadow-sm'>
+            <Card className='py-0 rounded shadow-sm gap-0'>
                 <CardHeader className='pt-3 px-3 border-b [.border-b]:pb-2'>
                   <div className='flex justify-between items-center'>
 
@@ -50,14 +50,14 @@ const ShowCategory = () => {
                     </Button>
                   </div>
                 </CardHeader>
-                <CardContent className='pb-5'>
+                <CardContent className='px-0'>
                    <DataTableWrapper
-                    queryKey={QUERY_KEYS.CATEGORY}
-                    fetchUrl="/api/category"
+                    queryKey={[...QUERY_KEYS.CATEGORY, 'SD']}
+                    fetchUrl="/api/v1/category"
                     initialPageSize={10}
                     columnsConfig={columns}
-                    exportEndpoint="/api/category/export"
-                    deleteEndpoint="/api/category/delete"
+                    exportEndpoint="/api/v1/category/export"
+                    deleteEndpoint="/api/v1/category/update-status"
                     deleteType="SD"
                     trashView={`${ADMIN_TRASH}?trashof=category`}   
                     createAction={action}

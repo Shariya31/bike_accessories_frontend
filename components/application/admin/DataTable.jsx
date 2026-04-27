@@ -13,6 +13,7 @@ import useDeleteMutation from '@/hooks/common/useDeleteMutation'
 import FileDownloadIcon from '@mui/icons-material/FileDownload';
 import ButtonLoading from '../ButtonLoading'
 import { download, generateCsv, mkConfig } from 'export-to-csv'
+import API from '@/api/axios'
 
 const DataTable = ({
     queryKey,
@@ -45,7 +46,7 @@ const DataTable = ({
     const deleteMutation = useDeleteMutation(queryKey)
     
     const handleDelete = (ids, deleteType) => {
-        console.log(deleteType, 'deleteType')
+        console.log(deleteType ,ids, 'deleteType')
         // const deleteEndpoint = deleteType === 'PD' ? '/api/v1/media/delete' : '/api/v1/media/update-status'
         let c
         if (deleteType === "PD") {
@@ -121,8 +122,9 @@ const DataTable = ({
             url.searchParams.set('filters', JSON.stringify(columnFilters ?? []));
             url.searchParams.set('globalFilter', globalFilter ?? '');
             url.searchParams.set('sorting', JSON.stringify(sorting ?? []));
+            url.searchParams.set('deleteType', deleteType);
 
-            const { data: response } = await axios.get(url.href)
+            const { data: response } = await API.get(url.href)
             return response
         },
         placeholderData: keepPreviousData,
@@ -154,7 +156,7 @@ const DataTable = ({
         onGlobalFilterChange: setGlobalFilter,
         onPaginationChange: setPagination,
         onSortingChange: setSorting,
-        rowCount: data?.meta?.totalRowCount ?? 0,
+        rowCount: meta?.totalRowCount ?? 0,
         onRowSelectionChange: setRowSelection,
         state: {
             columnFilters,
@@ -234,10 +236,11 @@ const DataTable = ({
                 <ButtonLoading 
                 type='button' 
                 text={<>
-                <FileDownloadIcon /> Export
+                <FileDownloadIcon fontSize='25'/> Export
                 </>} 
                 loading={exportLoading}
                 onClick={() => handleExport(table.getSelectedRowModel().rows)}
+                className="cursor-pointer"
                 />
 
             </Tooltip>
