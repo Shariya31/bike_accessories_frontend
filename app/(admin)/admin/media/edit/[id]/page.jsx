@@ -38,7 +38,6 @@ const EditMedia = () => {
 
   const { data: mediaData } = useGetMediaById(id)
   const updateMutation = useUpdateMedia()
-  console.log(id, mediaData, 'dataid')
 
   const formSchema = zSchema.pick({
     _id: true,

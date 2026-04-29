@@ -30,7 +30,7 @@ const TRASH_CONFIG = {
     columns: DT_CATEGORY_COLUMN,
     fetchUrl: '/api/v1/category',
     exportUrl: '/api/v1/category/export',
-    deleteUrl: '/api/v1/category/delete'
+    deleteUrl: '/api/v1/category/update-status'
   }
 }
 const Trash = () => {

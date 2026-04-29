@@ -7,21 +7,24 @@ export const useUpdateMedia = () => {
     const queryClient = useQueryClient();
 
     return useMutation({
-        mutationFn: async({_id, alt, title})=>{
-            const response = await updateMediaApi({_id, alt, title})
+        mutationFn: async ({ _id, alt, title }) => {
+            const response = await updateMediaApi({ _id, alt, title })
 
-            if(!response.success) throw new Error(response.message)
+            if (!response.success) throw new Error(response.message)
 
             return response
         },
         onSuccess: (data) => {
             showToast('success', data.message),
-            queryClient.invalidateQueries({
-                queryKey: QUERY_KEYS.MEDIA
-            })
+                queryClient.invalidateQueries({
+                    queryKey: QUERY_KEYS.MEDIA
+                })
         },
         onError: (error) => {
-            showToast('error', error.message)
+            const message =
+                error?.response?.data?.message || error.message || "Something went wrong";
+
+            showToast('error', message);
         }
     })
 }

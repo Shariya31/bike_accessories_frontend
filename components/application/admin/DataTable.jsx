@@ -14,6 +14,7 @@ import FileDownloadIcon from '@mui/icons-material/FileDownload';
 import ButtonLoading from '../ButtonLoading'
 import { download, generateCsv, mkConfig } from 'export-to-csv'
 import API from '@/api/axios'
+import { showToast } from '@/lib/showToast'
 
 const DataTable = ({
     queryKey,
@@ -44,27 +45,35 @@ const DataTable = ({
 
     // handle delete method
     const deleteMutation = useDeleteMutation(queryKey)
-    
+
     const handleDelete = (ids, deleteType) => {
-        console.log(deleteType ,ids, 'deleteType')
         // const deleteEndpoint = deleteType === 'PD' ? '/api/v1/media/delete' : '/api/v1/media/update-status'
         let c
         if (deleteType === "PD") {
-            c = confirm("Are you sure you want to delete the media permanently")
+            c = confirm("Are you sure you want to delete permanently?")
+        } else if (deleteType === "RSD") {
+            c = confirm("Are you sure you want to restore this data?")
         } else {
-            c = confirm("Are you sure you want to move data to trash")
+            c = confirm("Are you sure you want to move data to trash?")
+        }
+        if (!c) return
+
+        let endpoint
+
+        if (deleteType === "PD") {
+            endpoint = "/api/v1/category/delete"          // permanent delete
+        } else {
+            endpoint = "/api/v1/category/update-status"   // SD + RSD
         }
 
-        if (c) {
-            deleteMutation.mutate({ ids, deleteType, deleteEndpoint })
+            deleteMutation.mutate({ ids, deleteType, deleteEndpoint:endpoint })
             setRowSelection({})
-        }
 
     }
 
     // Export method
 
-    const handleExport = async(selectedRows) => {
+    const handleExport = async (selectedRows) => {
         setExportLoading(true);
         try {
             const csvConfig = mkConfig({
@@ -76,15 +85,17 @@ const DataTable = ({
 
             let csv
 
-            if(Object.keys(rowSelection).length > 0){
+            if (Object.keys(rowSelection).length > 0) {
                 // export only selected rows
 
                 const rowData = selectedRows.map((row) => row.original)
                 csv = generateCsv(csvConfig)(rowData)
-            }else{
+            } else {
                 // export all data
-                const {data: response} = await axios.get(exportEndpoint)
-                if(!response.success){
+                const { data: response } = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}${exportEndpoint}`,{
+                    withCredentials: true
+                })
+                if (!response.success) {
                     throw new Error(response.message)
                 }
 
@@ -96,7 +107,7 @@ const DataTable = ({
         } catch (error) {
             console.log(error)
             showToast('error', error.message)
-        }finally{
+        } finally {
             setExportLoading(false)
         }
     }
@@ -233,14 +244,14 @@ const DataTable = ({
 
         renderTopToolbarCustomActions: ({ table }) => (
             <Tooltip>
-                <ButtonLoading 
-                type='button' 
-                text={<>
-                <FileDownloadIcon fontSize='25'/> Export
-                </>} 
-                loading={exportLoading}
-                onClick={() => handleExport(table.getSelectedRowModel().rows)}
-                className="cursor-pointer"
+                <ButtonLoading
+                    type='button'
+                    text={<>
+                        <FileDownloadIcon fontSize='25' /> Export
+                    </>}
+                    loading={exportLoading}
+                    onClick={() => handleExport(table.getSelectedRowModel().rows)}
+                    className="cursor-pointer"
                 />
 
             </Tooltip>
@@ -248,7 +259,7 @@ const DataTable = ({
     })
 
     return (
-       <MaterialReactTable table={table}/>
+        <MaterialReactTable table={table} />
 
     )
 }
