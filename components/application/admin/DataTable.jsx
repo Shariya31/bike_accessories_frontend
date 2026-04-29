@@ -66,8 +66,8 @@ const DataTable = ({
             endpoint = "/api/v1/category/update-status"   // SD + RSD
         }
 
-            deleteMutation.mutate({ ids, deleteType, deleteEndpoint:endpoint })
-            setRowSelection({})
+        deleteMutation.mutate({ ids, deleteType, deleteEndpoint: endpoint })
+        setRowSelection({})
 
     }
 
@@ -92,7 +92,7 @@ const DataTable = ({
                 csv = generateCsv(csvConfig)(rowData)
             } else {
                 // export all data
-                const { data: response } = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}${exportEndpoint}`,{
+                const { data: response } = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}${exportEndpoint}`, {
                     withCredentials: true
                 })
                 if (!response.success) {

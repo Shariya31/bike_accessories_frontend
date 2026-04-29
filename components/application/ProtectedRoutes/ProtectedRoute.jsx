@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
 const ProtectedRoute = ({ children }) => {
-  const { data, isLoading, isError } = useAuth();
+  const { data:user, isLoading, isError } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
