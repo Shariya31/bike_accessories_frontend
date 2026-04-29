@@ -13,7 +13,7 @@ const ProtectedRoute = ({ children }) => {
     }
   }, [isLoading, isError]);
 
-  if (isLoading) return <h2>Loading...</h2>;
+  if (isLoading) return <h2>Loading..</h2>;
 
   return children;
 };
