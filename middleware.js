@@ -21,6 +21,9 @@ export async function middleware(request) {
         const access_token = request.cookies.get('access_token')?.value
         const { payload } = await jwtVerify(access_token, new TextEncoder().encode(process.env.SECRET_KEY))
 
+        console.log("TOKEN:", access_token);
+console.log("SECRET:", process.env.SECRET_KEY);
+
         const role = payload.role
         // prevent logged in users form accessing auth routes
 
