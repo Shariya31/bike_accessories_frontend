@@ -11,7 +11,15 @@ const nextConfig = {
         search: ''
       }
     ]
-  }
+  },
+   async rewrites() {
+    return [
+      {
+        source: "/api/:path*",
+        destination: "https://bike-accessories-backend.onrender.com/api/:path*",
+      },
+    ];
+  },
 };
 
 export default nextConfig;

@@ -22,9 +22,8 @@ import ButtonLoading from "@/components/application/ButtonLoading";
 import { z } from 'zod'
 import Link from "next/link";
 import { WEBSITE_LOGIN, WEBSITE_REGISTER } from "@/routes/WebsiteRoutes";
-import axios from "axios";
 import { showToast } from "@/lib/showToast";
-const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL
+import API from "@/api/axios";
 const RegisterPage = () => {
     const [loading, setLoading] = useState(false)
     const [isTypePassword, setIsTypePassword] = useState(true)
@@ -53,7 +52,7 @@ const RegisterPage = () => {
     const handleRegisterSubmit = async (values) => {
         try {
             setLoading(true);
-            const { data: registerResponse } = await axios.post(`${baseUrl}/api/v1/auth/register`, values)
+            const { data: registerResponse } = await API.post(`/api/v1/auth/register`, values)
             form.reset();
             showToast('success', registerResponse.message)
         } catch (error) {

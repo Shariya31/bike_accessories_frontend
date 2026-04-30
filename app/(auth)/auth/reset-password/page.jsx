@@ -14,10 +14,7 @@ import { Controller, useForm } from 'react-hook-form';
 import Logo from "@/public/assets/images/Logo.jpg";
 import UpdatePassword from '@/components/application/UpdatePassword/UpdatePassword';
 import { showToast } from '@/lib/showToast';
-import axios from 'axios';
-
-const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL
-
+import API from '@/api/axios';
 const ResetPasswordPage = () => {
     const [emailVerificationLoading, setEmailVerificationLoading] = useState(false)
     const [otpVerificationLoading, setOtpVerificationLoading] = useState(false)
@@ -39,7 +36,7 @@ const ResetPasswordPage = () => {
     const handleEmailVerification = async (values) => {
         try {
             setEmailVerificationLoading(true);
-            const { data: sendOtpResponse } = await axios.post(`${baseUrl}/api/v1/auth/reset-password/send-otp`, values)
+            const { data: sendOtpResponse } = await API.post(`/api/v1/auth/reset-password/send-otp`, values)
             setOtpEmail(values.email)
             showToast('success', sendOtpResponse.message)
 
@@ -56,7 +53,7 @@ const ResetPasswordPage = () => {
     const handleOtpVerification = async (values) => {
         try {
             setOtpVerificationLoading(true);
-            const { data: otpVerificationResponse } = await axios.post(`${baseUrl}/api/v1/auth/reset-password/verify-otp`, values)
+            const { data: otpVerificationResponse } = await API.post(`/api/v1/auth/reset-password/verify-otp`, values)
             console.log(otpVerificationResponse)
             if (!otpVerificationResponse.success) {
                 throw new Error(otpVerificationResponse.data.message)

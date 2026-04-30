@@ -19,11 +19,10 @@ import {
 import { Input } from "@/components/ui/input";
 import ButtonLoading from "@/components/application/ButtonLoading";
 import { z } from 'zod'
-import axios from "axios";
 import { showToast } from "@/lib/showToast";
 import { useRouter } from "next/navigation";
 import { WEBSITE_LOGIN } from "@/routes/WebsiteRoutes";
-const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL
+import API from "@/api/axios";
 const UpdatePassword = ({email}) => {
     const [loading, setLoading] = useState(false)
     const [isTypePassword, setIsTypePassword] = useState(true)
@@ -53,7 +52,7 @@ const UpdatePassword = ({email}) => {
     const handleResetPassword = async (values) => {
         try {
             setLoading(true);
-            const { data: resetPasswordResponse } = await axios.put(`${baseUrl}/api/v1/auth/reset-password/update-password`, values)
+            const { data: resetPasswordResponse } = await API.put(`/api/v1/auth/reset-password/update-password`, values)
             if (!resetPasswordResponse.success) {
                 throw new Error(resetPasswordResponse.message)
             }

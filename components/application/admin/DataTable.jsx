@@ -92,7 +92,7 @@ const DataTable = ({
                 csv = generateCsv(csvConfig)(rowData)
             } else {
                 // export all data
-                const { data: response } = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}${exportEndpoint}`, {
+                const { data: response } = await axios.get(`${exportEndpoint}`, {
                     withCredentials: true
                 })
                 if (!response.success) {
@@ -124,7 +124,7 @@ const DataTable = ({
             columnFilters, globalFilter, pagination, sorting
         }],
         queryFn: async () => {
-            const url = new URL(fetchUrl, process.env.NEXT_PUBLIC_BACKEND_URL)
+            const url = new URL(fetchUrl, window.location.origin)
             url.searchParams.set(
                 'start',
                 `${pagination.pageIndex * pagination.pageSize}`,

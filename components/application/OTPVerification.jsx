@@ -10,8 +10,7 @@ import { Input } from '../ui/input'
 import { FaRegEye, FaRegEyeSlash } from 'react-icons/fa6'
 import { InputOTP, InputOTPGroup, InputOTPSeparator, InputOTPSlot } from '../ui/input-otp'
 import { showToast } from '@/lib/showToast'
-import axios from 'axios'
-const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL
+import API from '@/api/axios'
 
 const OTPVerification = ({ email, onSubmit, loading }) => {
     const [otpResendLoading, setOtpResendLoading] = useState(false)
@@ -34,7 +33,7 @@ const OTPVerification = ({ email, onSubmit, loading }) => {
     const resendOtp = async () => {
         try {
             setOtpResendLoading(true);
-            const { data: otpResendResponse } = await axios.post(`${baseUrl}/api/v1/auth/resend-otp`, { email })
+            const { data: otpResendResponse } = await API.post(`/api/v1/auth/resend-otp`, { email })
             if (!otpResendResponse.success) {
                 throw new Error(otpResendResponse.data.message)
             }

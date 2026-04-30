@@ -47,7 +47,7 @@ const UploadMedia = ({ isMultiple }) => {
     }
     return (
         <CldUploadWidget
-            signatureEndpoint={`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/cloud/cloudinary-signature`}
+            signatureEndpoint={`/api/v1/cloud/cloudinary-signature`}
             uploadPreset={process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET}
             onError={handleOnError}
             onQueuesEnd={handleOnQueuesEnd}
