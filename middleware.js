@@ -1,83 +1,104 @@
 import { NextResponse } from "next/server"
 import { USER_DASHBOARD, WEBSITE_LOGIN } from "./routes/WebsiteRoutes"
-import { ADMIN_DASHBOARD } from "./routes/AdminPannelRoute"
 import { jwtVerify } from "jose"
+import { ADMIN_DASHBOARD } from "./routes/AdminPannelRoute"
+import { showToast } from "./lib/showToast"
 
 export async function middleware(request) {
-    const pathname = request.nextUrl.pathname
+    try {
 
-    const token = request.cookies.get("access_token")?.value
+        const secret = process.env.SECRET_KEY
 
-    // 🟡 1. If NO token
-    if (!token) {
-        // allow auth routes
-        if (pathname.startsWith("/auth")) {
+        // ✅ Catch missing env var explicitly
+        if (!secret) {
+            showToast('error',"SECRET_KEY is not defined in environment variables")
+            console.log("SECRET_KEY is not defined in environment variables")
+            return NextResponse.redirect(new URL(WEBSITE_LOGIN, request.nextUrl))
+        }
+        const pathname = request.nextUrl.pathname
+        const accessToken = request.cookies.get('access_token')?.value
+        const refreshToken = request.cookies.get('refresh_token')?.value
+
+        // No tokens at all
+        if (!accessToken && !refreshToken) {
+            if (!pathname.startsWith('/auth')) {
+                return NextResponse.redirect(new URL(WEBSITE_LOGIN, request.nextUrl))
+            }
             return NextResponse.next()
         }
 
-        // block protected routes
-        if (
-            pathname.startsWith("/admin") ||
-            pathname.startsWith("/my-account")
-        ) {
-            return NextResponse.redirect(
-                new URL(WEBSITE_LOGIN, request.nextUrl)
-            )
+        // Try to verify access token
+        if (accessToken) {
+            try {
+                const { payload } = await jwtVerify(
+                    accessToken,
+                    new TextEncoder().encode(secret)
+                )
+
+                const role = payload.role
+
+                if (pathname.startsWith('/auth')) {
+                    return NextResponse.redirect(
+                        new URL(role === 'admin' ? ADMIN_DASHBOARD : USER_DASHBOARD, request.nextUrl)
+                    )
+                }
+
+                if (pathname.startsWith('/admin') && role !== 'admin') {
+                    return NextResponse.redirect(new URL(WEBSITE_LOGIN, request.nextUrl))
+                }
+
+                return NextResponse.next()
+
+            } catch (err) {
+                // access_token is expired/invalid — fall through to refresh attempt
+            }
+        }
+
+        // Access token missing or expired — try refreshing
+        if (refreshToken) {
+            try {
+                const refreshResponse = await fetch(
+                    `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/auth/refresh`,
+                    {
+                        method: 'POST',
+                        headers: {
+                            Cookie: `refresh_token=${refreshToken}`
+                        },
+                        credentials: 'include'
+                    }
+                )
+
+                if (refreshResponse.ok) {
+                    // Forward the new access_token cookie from backend to the response
+                    const setCookieHeader = refreshResponse.headers.get('set-cookie')
+                    const response = NextResponse.next()
+
+                    if (setCookieHeader) {
+                        response.headers.set('set-cookie', setCookieHeader)
+                    }
+
+                    if (pathname.startsWith('/auth')) {
+                        return NextResponse.redirect(new URL(USER_DASHBOARD, request.nextUrl))
+                    }
+
+                    return response
+                }
+            } catch (err) {
+                // refresh failed, fall through to redirect
+            }
+        }
+
+        // All token attempts failed
+        if (!pathname.startsWith('/auth')) {
+            return NextResponse.redirect(new URL(WEBSITE_LOGIN, request.nextUrl))
         }
 
         return NextResponse.next()
-    }
 
-    // 🟡 2. If token exists → VERIFY safely
-    let payload
-
-    try {
-        const secret = process.env.SECRET_KEY
-
-        if (!secret) {
-            throw new Error("SECRET_KEY missing in middleware")
-        }
-
-        const verified = await jwtVerify(
-            token,
-            new TextEncoder().encode(secret)
-        )
-
-        payload = verified.payload
     } catch (error) {
-        // ❌ invalid / expired token
-        return NextResponse.redirect(
-            new URL(WEBSITE_LOGIN, request.nextUrl)
-        )
+        console.log(error)
+        return NextResponse.redirect(new URL(WEBSITE_LOGIN, request.nextUrl))
     }
-
-    const role = payload.role
-
-    // 🟡 3. Prevent logged-in users from accessing auth pages
-    if (pathname.startsWith("/auth")) {
-        return NextResponse.redirect(
-            new URL(
-                role === "admin" ? ADMIN_DASHBOARD : USER_DASHBOARD,
-                request.nextUrl
-            )
-        )
-    }
-
-    // 🟡 4. Protect admin routes
-    if (pathname.startsWith("/admin") && role !== "admin") {
-        return NextResponse.redirect(
-            new URL(WEBSITE_LOGIN, request.nextUrl)
-        )
-    }
-
-    // 🟡 5. (optional) protect user routes
-    if (pathname.startsWith("/my-account") && role !== "user") {
-        return NextResponse.redirect(
-            new URL(WEBSITE_LOGIN, request.nextUrl)
-        )
-    }
-
-    return NextResponse.next()
 }
 
 export const config = {
