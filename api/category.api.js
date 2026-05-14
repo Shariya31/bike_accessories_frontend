@@ -3,6 +3,15 @@ import API from "./axios";
 export const createCategoryApi = (data) =>
   API.post("/api/v1/category/create", data);
 
+export const getCategoryApi = ({ page = 0, limit = 10, deleteType = "SD" }) =>
+  API.get("/api/v1/category", {
+    params: {
+      start:page,
+      size:limit,
+      deleteType,
+    },
+  });
+
 export const getCategoryById = (id) => 
   API.get(`/api/v1/category/get-category/${id}`)
 
