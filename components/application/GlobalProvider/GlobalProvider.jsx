@@ -4,7 +4,6 @@ import React from 'react'
 import { Provider } from 'react-redux'
 import { PersistGate } from 'redux-persist/integration/react'
 
-
 const GlobalProvider = ({children}) => {
   return (
     <Provider store={store}>
