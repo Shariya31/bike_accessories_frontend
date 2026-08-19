@@ -10,13 +10,13 @@ import { ADMIN_DASHBOARD, ADMIN_PRODUCT_SHOW } from '@/routes/AdminPannelRoute'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { zSchema } from '@/lib/zodSchema'
 import slugify from 'slugify'
-import { useCreateCategory } from '@/hooks/category/useCreateCategory'
 import { showToast } from '@/lib/showToast'
 import { useGetCategory } from '@/hooks/category/useGetCategory'
 import Select from '@/components/application/Select/Select'
 import Editor from '@/components/application/admin/Editor'
 import MediaModal from '@/components/application/admin/MediaModal'
 import Image from 'next/image'
+import { useCreateProduct } from '@/hooks/product/useCreateProduct'
 
 const breadcrumbData = [
     {
@@ -33,7 +33,7 @@ const breadcrumbData = [
 const AddProduct = () => {
     const [loading, setLoading] = useState(false)
     const [categoryOptions, setCategoryOptions] = useState([])
-    const { mutateAsync: createCategory, isPending } = useCreateCategory()
+    const { mutateAsync: createProduct, isPending } = useCreateProduct()
     const { data: categoryList, isLoading, isError, } = useGetCategory({ limit: 100, deleteType: 'SD' })
 
     // media modal states
@@ -70,6 +70,18 @@ const AddProduct = () => {
         }
     }, [form.watch('name')])
 
+    // discount percentage calculation
+
+    useEffect(() => {
+        const mrp = form.getValues('mrp') || 0
+        const sellingPrice = form.getValues('sellingPrice') || 0
+
+        if (mrp > 0 && sellingPrice > 0) {
+            const discountPercentage = ((mrp - sellingPrice) / mrp) * 100
+            form.setValue('discountPercentage', Math.round(discountPercentage))
+        }
+    }, [form.watch('mrp'), form.watch('sellingPrice')])
+
     useEffect(() => {
         if (categoryList && categoryList.pages[0].success) {
             const data = categoryList.pages[0].data
@@ -92,12 +104,20 @@ const AddProduct = () => {
     const onSubmit = async (values) => {
         try {
             setLoading(true)
-            const { data: response } = await createCategory({
+            if (selectedMedia.length <= 0) {
+                return showToast('error', 'Please select a media')
+            }
+
+            const mediaIds = selectedMedia.map(media => media._id)
+
+            values.media = mediaIds
+
+            const { data: response } = await createProduct({
                 payload: values
             })
 
             if (!response.success) {
-                throw new Error(response.message, 'Unable to create category')
+                throw new Error(response.message, 'Unable to create product')
             }
             form.reset()
             showToast('success', response.message)
@@ -132,114 +152,116 @@ const AddProduct = () => {
                     >
 
                         <div className='grid md:grid-cols-2 gap-5'>
+                            <div className='grid grid-cols-2 md:grid-cols-2 gap-5'>
 
-                            <FieldGroup>
-                                {/* Name */}
-                                <Controller
-                                    name="name"
-                                    control={form.control}
-                                    render={({ field, fieldState }) => (
-                                        <Field data-invalid={fieldState.invalid}>
-                                            <FieldLabel>Name <span className='text-red-500'>*</span></FieldLabel>
-                                            <Input {...field} type="text" placeholder='Enter Name' />
-                                            {fieldState.error && (
-                                                <FieldError errors={[fieldState.error]} />
-                                            )}
-                                        </Field>
-                                    )}
-                                />
-                            </FieldGroup>
+                                <FieldGroup>
+                                    {/* Name */}
+                                    <Controller
+                                        name="name"
+                                        control={form.control}
+                                        render={({ field, fieldState }) => (
+                                            <Field data-invalid={fieldState.invalid}>
+                                                <FieldLabel>Name <span className='text-red-500'>*</span></FieldLabel>
+                                                <Input {...field} type="text" placeholder='Enter Name' />
+                                                {fieldState.error && (
+                                                    <FieldError errors={[fieldState.error]} />
+                                                )}
+                                            </Field>
+                                        )}
+                                    />
+                                </FieldGroup>
 
-                            <FieldGroup>
-                                {/* Slug */}
-                                <Controller
-                                    name="slug"
-                                    control={form.control}
-                                    render={({ field, fieldState }) => (
-                                        <Field data-invalid={fieldState.invalid}>
-                                            <FieldLabel>Slug<span className='text-red-500'>*</span></FieldLabel>
-                                            <Input {...field} type="text" placeholder='Enter Slug' />
-                                            {fieldState.error && (
-                                                <FieldError errors={[fieldState.error]} />
-                                            )}
-                                        </Field>
-                                    )}
-                                />
-                            </FieldGroup>
+                                <FieldGroup>
+                                    {/* Slug */}
+                                    <Controller
+                                        name="slug"
+                                        control={form.control}
+                                        render={({ field, fieldState }) => (
+                                            <Field data-invalid={fieldState.invalid}>
+                                                <FieldLabel>Slug<span className='text-red-500'>*</span></FieldLabel>
+                                                <Input {...field} type="text" placeholder='Enter Slug' />
+                                                {fieldState.error && (
+                                                    <FieldError errors={[fieldState.error]} />
+                                                )}
+                                            </Field>
+                                        )}
+                                    />
+                                </FieldGroup>
 
-                            {/* category */}
-                            <FieldGroup>
-                                <Controller
-                                    name="category"
-                                    control={form.control}
-                                    render={({ field, fieldState }) => (
-                                        <Field data-invalid={fieldState.invalid}>
-                                            <FieldLabel>Category<span className='text-red-500'>*</span></FieldLabel>
-                                            <Select
-                                                options={categoryOptions}
-                                                selected={field.value}
-                                                setSelected={field.onChange}
-                                                isMulti={false}
-                                            />
-                                            {fieldState.error && (
-                                                <FieldError errors={[fieldState.error]} />
-                                            )}
-                                        </Field>
-                                    )}
-                                />
-                            </FieldGroup>
+                                {/* category */}
+                                <FieldGroup>
+                                    <Controller
+                                        name="category"
+                                        control={form.control}
+                                        render={({ field, fieldState }) => (
+                                            <Field data-invalid={fieldState.invalid}>
+                                                <FieldLabel>Category<span className='text-red-500'>*</span></FieldLabel>
+                                                <Select
+                                                    options={categoryOptions}
+                                                    selected={field.value}
+                                                    setSelected={field.onChange}
+                                                    isMulti={false}
+                                                />
+                                                {fieldState.error && (
+                                                    <FieldError errors={[fieldState.error]} />
+                                                )}
+                                            </Field>
+                                        )}
+                                    />
+                                </FieldGroup>
 
-                            {/* MRP*/}
-                            <FieldGroup>
-                                <Controller
-                                    name="mrp"
-                                    control={form.control}
-                                    render={({ field, fieldState }) => (
-                                        <Field data-invalid={fieldState.invalid}>
-                                            <FieldLabel>MRP<span className='text-red-500'>*</span></FieldLabel>
-                                            <Input {...field} type="number" placeholder='Enter MRP' />
-                                            {fieldState.error && (
-                                                <FieldError errors={[fieldState.error]} />
-                                            )}
-                                        </Field>
-                                    )}
-                                />
-                            </FieldGroup>
-
-                            {/* Discount Percentage*/}
-                            <FieldGroup>
-                                <Controller
-                                    name="discountPercentage"
-                                    control={form.control}
-                                    render={({ field, fieldState }) => (
-                                        <Field data-invalid={fieldState.invalid}>
-                                            <FieldLabel>Discount Percentage<span className='text-red-500'>*</span></FieldLabel>
-                                            <Input {...field} type="number" placeholder='Enter Discount Percentage' />
-                                            {fieldState.error && (
-                                                <FieldError errors={[fieldState.error]} />
-                                            )}
-                                        </Field>
-                                    )}
-                                />
-                            </FieldGroup>
+                                {/* MRP*/}
+                                <FieldGroup>
+                                    <Controller
+                                        name="mrp"
+                                        control={form.control}
+                                        render={({ field, fieldState }) => (
+                                            <Field data-invalid={fieldState.invalid}>
+                                                <FieldLabel>MRP<span className='text-red-500'>*</span></FieldLabel>
+                                                <Input {...field} type="number" placeholder='Enter MRP' />
+                                                {fieldState.error && (
+                                                    <FieldError errors={[fieldState.error]} />
+                                                )}
+                                            </Field>
+                                        )}
+                                    />
+                                </FieldGroup>
 
 
-                            {/* Selling Price*/}
-                            <FieldGroup>
-                                <Controller
-                                    name="sellingPrice"
-                                    control={form.control}
-                                    render={({ field, fieldState }) => (
-                                        <Field data-invalid={fieldState.invalid}>
-                                            <FieldLabel>Selling Price<span className='text-red-500'>*</span></FieldLabel>
-                                            <Input {...field} type="number" placeholder='Enter Selling Price' />
-                                            {fieldState.error && (
-                                                <FieldError errors={[fieldState.error]} />
-                                            )}
-                                        </Field>
-                                    )}
-                                />
-                            </FieldGroup>
+                                {/* Selling Price*/}
+                                <FieldGroup>
+                                    <Controller
+                                        name="sellingPrice"
+                                        control={form.control}
+                                        render={({ field, fieldState }) => (
+                                            <Field data-invalid={fieldState.invalid}>
+                                                <FieldLabel>Selling Price<span className='text-red-500'>*</span></FieldLabel>
+                                                <Input {...field} type="number" placeholder='Enter Selling Price' />
+                                                {fieldState.error && (
+                                                    <FieldError errors={[fieldState.error]} />
+                                                )}
+                                            </Field>
+                                        )}
+                                    />
+                                </FieldGroup>
+
+                                {/* Discount Percentage*/}
+                                <FieldGroup>
+                                    <Controller
+                                        name="discountPercentage"
+                                        control={form.control}
+                                        render={({ field, fieldState }) => (
+                                            <Field data-invalid={fieldState.invalid}>
+                                                <FieldLabel>Discount Percentage<span className='text-red-500'>*</span></FieldLabel>
+                                                <Input {...field} type="number" placeholder='Enter Discount Percentage' readOnly />
+                                                {fieldState.error && (
+                                                    <FieldError errors={[fieldState.error]} />
+                                                )}
+                                            </Field>
+                                        )}
+                                    />
+                                </FieldGroup>
+                            </div>
 
                             {/* Description*/}
                             <FieldGroup>
@@ -268,23 +290,23 @@ const AddProduct = () => {
                                 isMultiple={true}
                             />
 
-                            {selectedMedia.length > 0 && 
-                            <div className='flex justify-center items-center flex-wrap gap-2'>
-                                {selectedMedia.map(media => (
-                                    <div key={media._id} className='h-24 w-24 border'>
-                                        <Image
-                                            src={media.url}
-                                            alt={media.alt || ''}
-                                            height={50}
-                                            width={50}
-                                            className='size-full object-cover'
-                                        />
-                                    </div>
-                                ))}
+                            {selectedMedia.length > 0 &&
+                                <div className='flex justify-center items-center flex-wrap gap-2'>
+                                    {selectedMedia.map(media => (
+                                        <div key={media._id} className='h-24 w-24 border'>
+                                            <Image
+                                                src={media.url}
+                                                alt={media.alt || ''}
+                                                height={50}
+                                                width={50}
+                                                className='size-full object-cover'
+                                            />
+                                        </div>
+                                    ))}
                                 </div>}
 
                             <div className='bg-gray-50 dark:bg-card border w-50 mx-auto p-5 cursor-pointer' onClick={() => setOpen(true)}>
-                                <span className='font-semibold'>Select Media</span>
+                                <span className='w-[5rem] font-semibold'>Select Media</span>
                             </div>
                         </div>
 
