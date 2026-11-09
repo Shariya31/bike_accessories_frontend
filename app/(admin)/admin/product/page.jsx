@@ -57,7 +57,7 @@ const ShowProduct = () => {
                     initialPageSize={10}
                     columnsConfig={columns}
                     exportEndpoint="/api/v1/product/export"
-                    deleteEndpoint="/api/v1/product/update-status"
+                    deleteEndpoint="/api/v1/product"
                     deleteType="SD"
                     trashView={`${ADMIN_TRASH}?trashof=product`}   
                     createAction={action}

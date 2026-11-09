@@ -6,7 +6,7 @@ import DeleteAction from '@/components/application/admin/DeleteAction'
 import EditAction from '@/components/application/admin/EditAction'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
-import { DT_CATEGORY_COLUMN } from '@/lib/column'
+import { DT_CATEGORY_COLUMN, DT_PRODUCT_COLUMN } from '@/lib/column'
 import { columnConfig } from '@/lib/helperFunction'
 import { ADMIN_CATEGORY_ADD, ADMIN_CATEGORY_EDIT, ADMIN_CATEGORY_SHOW, ADMIN_DASHBOARD, ADMIN_TRASH } from '@/routes/AdminPannelRoute'
 import Link from 'next/link'
@@ -28,9 +28,18 @@ const TRASH_CONFIG = {
   category: {
     title: 'Category Trash',
     columns: DT_CATEGORY_COLUMN,
+    queryKey: QUERY_KEYS.CATEGORY,
     fetchUrl: '/api/v1/category',
     exportUrl: '/api/v1/category/export',
-    deleteUrl: '/api/v1/category/update-status'
+    deleteUrl: '/api/v1/category'
+  },
+  product: {
+    title: 'Product Trash',
+    columns: DT_PRODUCT_COLUMN,
+    queryKey: QUERY_KEYS.PRODUCTS,
+    fetchUrl: '/api/v1/product',
+    exportUrl: '/api/v1/product/export',
+    deleteUrl: '/api/v1/product'
   }
 }
 const Trash = () => {
@@ -56,12 +65,13 @@ const Trash = () => {
           <div className='flex justify-between items-center'>
 
             <h4 className='text-semibold text-xl'>{config.title}</h4>
-            
+
           </div>
         </CardHeader>
         <CardContent className='px-0'>
           <DataTableWrapper
-            queryKey={[...QUERY_KEYS[trashof.toUpperCase()], 'PD']}
+            // queryKey={[...QUERY_KEYS[trashof.toUpperCase()], 'PD']}
+            queryKey={[...config.queryKey, 'PD']}
             fetchUrl={config.fetchUrl}
             initialPageSize={10}
             columnsConfig={columns}

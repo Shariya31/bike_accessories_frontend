@@ -57,7 +57,7 @@ const ShowCategory = () => {
                     initialPageSize={10}
                     columnsConfig={columns}
                     exportEndpoint="/api/v1/category/export"
-                    deleteEndpoint="/api/v1/category/update-status"
+                    deleteEndpoint="/api/v1/category"
                     deleteType="SD"
                     trashView={`${ADMIN_TRASH}?trashof=category`}   
                     createAction={action}

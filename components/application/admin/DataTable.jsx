@@ -58,13 +58,9 @@ const DataTable = ({
         }
         if (!c) return
 
-        let endpoint
-
-        if (deleteType === "PD") {
-            endpoint = "/api/v1/category/delete"          // permanent delete
-        } else {
-            endpoint = "/api/v1/category/update-status"   // SD + RSD
-        }
+        const endpoint = deleteType === "PD"
+        ? `${deleteEndpoint}/delete`
+        : `${deleteEndpoint}/update-status`
 
         deleteMutation.mutate({ ids, deleteType, deleteEndpoint: endpoint })
         setRowSelection({})
