@@ -1,9 +1,369 @@
-import React from 'react'
+'use client'
+import React, { use, useEffect, useState } from 'react'
+import BreadCrumb from '@/components/application/admin/BreadCrumb'
+import ButtonLoading from '@/components/application/ButtonLoading'
+import { Card, CardContent, CardHeader } from '@/components/ui/card'
+import { Field, FieldError, FieldGroup, FieldLabel } from '@/components/ui/field'
+import { Input } from '@/components/ui/input'
+import { Controller, useForm } from 'react-hook-form'
+import { ADMIN_DASHBOARD, ADMIN_PRODUCT_SHOW } from '@/routes/AdminPannelRoute'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { zSchema } from '@/lib/zodSchema'
+import slugify from 'slugify'
+import { showToast } from '@/lib/showToast'
+import { useGetCategory } from '@/hooks/category/useGetCategory'
+import Select from '@/components/application/Select/Select'
+import Editor from '@/components/application/admin/Editor'
+import MediaModal from '@/components/application/admin/MediaModal'
+import Image from 'next/image'
+import { useCreateProduct } from '@/hooks/product/useCreateProduct'
+import { useGetProductById } from '@/hooks/product/useGetProductById'
+import { useUpdateProduct } from '@/hooks/product/useUpdateProduct'
 
-const EditProduct = () => {
+const breadcrumbData = [
+  {
+    href: ADMIN_DASHBOARD, label: 'Home',
+  },
+  {
+    href: ADMIN_PRODUCT_SHOW, label: 'Product',
+  },
+  {
+    href: '', label: 'Edit Product',
+  }
+]
+
+const EditProduct = ({ params }) => {
+  const { id } = use(params)
+  const [loading, setLoading] = useState(false)
+  const [categoryOptions, setCategoryOptions] = useState([])
+  const { mutateAsync: createProduct, isPending } = useCreateProduct()
+  const { data: categoryList, isLoading, isError, } = useGetCategory({ limit: 100, deleteType: 'SD' })
+
+  // media modal states
+  const [open, setOpen] = useState(false)
+  const [selectedMedia, setSelectedMedia] = useState([])
+
+  const updateMutation = useUpdateProduct()
+  const { data: productData, isLoading: productDataLoading } = useGetProductById(id)
+
+  const formSchema = zSchema.pick({
+    _id: true,
+    name: true,
+    slug: true,
+    category: true,
+    mrp: true,
+    sellingPrice: true,
+    discountPercentage: true,
+    description: true
+  })
+
+  const form = useForm({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      _id: id,
+      name: '',
+      slug: '',
+      category: '',
+      mrp: '',
+      sellingPrice: '',
+      discountPercentage: '',
+      description: '',
+    },
+  });
+
+  useEffect(() => {
+    if (productData && productData?.data?.success) {
+      const data = productData?.data?.data
+      form.reset({
+        _id: data?._id,
+        name: data?.name,
+        slug: data?.slug,
+        category: data?.category,
+        mrp: data?.mrp,
+        sellingPrice: data?.sellingPrice,
+        discountPercentage: data?.discountPercentage,
+        description: data?.description,
+      })
+
+      if (data?.media) {
+        const media = data?.media.map((media) => (
+          {
+            _id: media._id,
+            url: media.secure_url
+          }
+        ))
+        setSelectedMedia(media)
+      }
+
+    }
+  }, [productData])
+
+  useEffect(() => {
+    const name = form.getValues('name');
+    if (name) {
+      form.setValue('slug', slugify(name).toLowerCase())
+    }
+  }, [form.watch('name')])
+
+  // discount percentage calculation
+
+  useEffect(() => {
+    const mrp = form.getValues('mrp') || 0
+    const sellingPrice = form.getValues('sellingPrice') || 0
+
+    if (mrp > 0 && sellingPrice > 0) {
+      const discountPercentage = ((mrp - sellingPrice) / mrp) * 100
+      form.setValue('discountPercentage', Math.round(discountPercentage))
+    }
+  }, [form.watch('mrp'), form.watch('sellingPrice')])
+
+  useEffect(() => {
+    if (categoryList && categoryList.pages[0].success) {
+      const data = categoryList.pages[0].data
+      const options = data.map((cat) => ({
+        label: cat.name,
+        value: cat._id
+      }))
+
+      setCategoryOptions(options)
+    }
+    console.log(categoryOptions, '74')
+
+  }, [categoryList]);
+
+  const editor = (event, editor) => {
+    const data = editor.getData()
+    form.setValue('description', data)
+  }
+
+  const onSubmit = async (values) => {
+    try {
+      setLoading(true)
+      if (selectedMedia.length <= 0) {
+        return showToast('error', 'Please select a media')
+      }
+
+      const mediaIds = selectedMedia.map(media => media._id)
+
+      values.media = mediaIds
+  
+      // const { data: response } = await createProduct({
+      //   payload: values
+      // })
+
+      updateMutation.mutate(values, {
+        onSettled: () => {
+          setLoading(false)
+        }
+      })
+
+      // if (!response.success) {
+      //   throw new Error(response.message, 'Unable to update product')
+      // }
+      form.reset()
+      // showToast('success', response.message)
+    } catch (error) {
+      showToast('error',
+        error?.response?.data?.message || error.message || 'Failed to update product')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
+
+  if (isError) {
+    return <div>Error loading categories</div>;
+  }
+
   return (
-    <div>
-      EditProduct
+    <div className='w-full'>
+      Edit Product
+      <BreadCrumb breadcrumbData={breadcrumbData} />
+      <Card className='py-0 rounded shadow-sm'>
+        <CardHeader className='pt-3 px-3 border-b [.border-b]:pb-2'>
+          <h4 className='text-semibold text-xl'>Edit Product</h4>
+        </CardHeader>
+        <CardContent className='pb-5'>
+          <form
+            onSubmit={form.handleSubmit(onSubmit)}
+            className="space-y-4 mt-6"
+          >
+
+            <div className='grid md:grid-cols-2 gap-5'>
+              <div className='grid grid-cols-2 md:grid-cols-2 gap-5'>
+
+                <FieldGroup>
+                  {/* Name */}
+                  <Controller
+                    name="name"
+                    control={form.control}
+                    render={({ field, fieldState }) => (
+                      <Field data-invalid={fieldState.invalid}>
+                        <FieldLabel>Name <span className='text-red-500'>*</span></FieldLabel>
+                        <Input {...field} type="text" placeholder='Enter Name' />
+                        {fieldState.error && (
+                          <FieldError errors={[fieldState.error]} />
+                        )}
+                      </Field>
+                    )}
+                  />
+                </FieldGroup>
+
+                <FieldGroup>
+                  {/* Slug */}
+                  <Controller
+                    name="slug"
+                    control={form.control}
+                    render={({ field, fieldState }) => (
+                      <Field data-invalid={fieldState.invalid}>
+                        <FieldLabel>Slug<span className='text-red-500'>*</span></FieldLabel>
+                        <Input {...field} type="text" placeholder='Enter Slug' />
+                        {fieldState.error && (
+                          <FieldError errors={[fieldState.error]} />
+                        )}
+                      </Field>
+                    )}
+                  />
+                </FieldGroup>
+
+                {/* category */}
+                <FieldGroup>
+                  <Controller
+                    name="category"
+                    control={form.control}
+                    render={({ field, fieldState }) => (
+                      <Field data-invalid={fieldState.invalid}>
+                        <FieldLabel>Category<span className='text-red-500'>*</span></FieldLabel>
+                        <Select
+                          options={categoryOptions}
+                          selected={field.value}
+                          setSelected={field.onChange}
+                          isMulti={false}
+                        />
+                        {fieldState.error && (
+                          <FieldError errors={[fieldState.error]} />
+                        )}
+                      </Field>
+                    )}
+                  />
+                </FieldGroup>
+
+                {/* MRP*/}
+                <FieldGroup>
+                  <Controller
+                    name="mrp"
+                    control={form.control}
+                    render={({ field, fieldState }) => (
+                      <Field data-invalid={fieldState.invalid}>
+                        <FieldLabel>MRP<span className='text-red-500'>*</span></FieldLabel>
+                        <Input {...field} type="number" placeholder='Enter MRP' />
+                        {fieldState.error && (
+                          <FieldError errors={[fieldState.error]} />
+                        )}
+                      </Field>
+                    )}
+                  />
+                </FieldGroup>
+
+
+                {/* Selling Price*/}
+                <FieldGroup>
+                  <Controller
+                    name="sellingPrice"
+                    control={form.control}
+                    render={({ field, fieldState }) => (
+                      <Field data-invalid={fieldState.invalid}>
+                        <FieldLabel>Selling Price<span className='text-red-500'>*</span></FieldLabel>
+                        <Input {...field} type="number" placeholder='Enter Selling Price' />
+                        {fieldState.error && (
+                          <FieldError errors={[fieldState.error]} />
+                        )}
+                      </Field>
+                    )}
+                  />
+                </FieldGroup>
+
+                {/* Discount Percentage*/}
+                <FieldGroup>
+                  <Controller
+                    name="discountPercentage"
+                    control={form.control}
+                    render={({ field, fieldState }) => (
+                      <Field data-invalid={fieldState.invalid}>
+                        <FieldLabel>Discount Percentage<span className='text-red-500'>*</span></FieldLabel>
+                        <Input {...field} type="number" placeholder='Enter Discount Percentage' readOnly />
+                        {fieldState.error && (
+                          <FieldError errors={[fieldState.error]} />
+                        )}
+                      </Field>
+                    )}
+                  />
+                </FieldGroup>
+              </div>
+
+              {/* Description*/}
+              <FieldGroup>
+                <Controller
+                  name="description"
+                  control={form.control}
+                  render={({ field, fieldState }) => (
+                    <Field data-invalid={fieldState.invalid}>
+                      <FieldLabel>Description<span className='text-red-500'>*</span></FieldLabel>
+                      {!productDataLoading &&
+                        <Editor onChange={editor} initialData={field.value} />
+                      }
+                      {fieldState.error && (
+                        <FieldError errors={[fieldState.error]} />
+                      )}
+                    </Field>
+                  )}
+                />
+              </FieldGroup>
+            </div>
+
+            <div className='md:col-span-2 border border-dashed rounded p-5 text-center'>
+              <MediaModal
+                open={open}
+                setOpen={setOpen}
+                selectedMedia={selectedMedia}
+                setSelectedMedia={setSelectedMedia}
+                isMultiple={true}
+              />
+
+              {selectedMedia.length > 0 &&
+                <div className='flex justify-center items-center flex-wrap gap-2'>
+                  {selectedMedia.map(media => (
+                    <div key={media._id} className='h-24 w-24 border'>
+                      <Image
+                        src={media.url}
+                        alt={media.alt || ''}
+                        height={50}
+                        width={50}
+                        className='size-full object-cover'
+                      />
+                    </div>
+                  ))}
+                </div>}
+
+              <div className='bg-gray-50 dark:bg-card border w-50 mx-auto p-5 cursor-pointer' onClick={() => setOpen(true)}>
+                <span className='w-[5rem] font-semibold'>Select Media</span>
+              </div>
+            </div>
+
+            {/* Submit */}
+            <ButtonLoading
+              type="submit"
+              text="Save Changes"
+              loading={loading}
+              className="cursor-pointer"
+            />
+
+          </form>
+        </CardContent>
+      </Card>
     </div>
   )
 }
