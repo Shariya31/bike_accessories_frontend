@@ -1,5 +1,14 @@
 import API from "./axios";
 
+export const getProductApi = ({ page = 0, limit = 10, deleteType = "SD" }) =>
+  API.get("/api/v1/product", {
+    params: {
+      page,
+      limit,
+      deleteType,
+    },
+  });
+
 export const createProductApi = (data) =>
   API.post("/api/v1/product/create", data);
 

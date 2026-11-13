@@ -52,8 +52,6 @@ function Select({
        setSelected(isMulti ? [] : null);
    };
 
-   console.log(options, 'from select')
-
    return (
        <Popover open={open} onOpenChange={setOpen}>
            <PopoverTrigger className="w-full" asChild>
