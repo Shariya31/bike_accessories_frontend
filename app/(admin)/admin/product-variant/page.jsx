@@ -6,7 +6,7 @@ import DeleteAction from '@/components/application/admin/DeleteAction'
 import EditAction from '@/components/application/admin/EditAction'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
-import { DT_PRODUCT_COLUMN } from '@/lib/column'
+import { DT_PRODUCT_VARIANT_COLUMN } from '@/lib/column'
 import { columnConfig } from '@/lib/helperFunction'
 import { ADMIN_DASHBOARD, ADMIN_PRODUCT_VARIANT_ADD, ADMIN_PRODUCT_VARIANT_EDIT, ADMIN_PRODUCT_VARIANT_SHOW, ADMIN_TRASH } from '@/routes/AdminPannelRoute'
 import Link from 'next/link'
@@ -19,13 +19,13 @@ const breadcrumbData = [
         href: ADMIN_DASHBOARD, label: 'Home',
     },
     {
-        href: ADMIN_PRODUCT_VARIANT_SHOW, label: 'Product',
+        href: ADMIN_PRODUCT_VARIANT_SHOW, label: 'Product Variant',
     }
 ]
-const ShowProduct = () => {
+const ShowProductVariant = () => {
 
   const columns = useMemo(() => {
-    return columnConfig(DT_PRODUCT_COLUMN)
+    return columnConfig(DT_PRODUCT_VARIANT_COLUMN)
   }, [])
 
   const action = useCallback((row, deleteType, handleDelete) => {
@@ -43,7 +43,7 @@ const ShowProduct = () => {
                 <CardHeader className='pt-3 px-3 border-b [.border-b]:pb-2'>
                   <div className='flex justify-between items-center'>
 
-                    <h4 className='text-semibold text-xl'>Show Variants</h4>
+                    <h4 className='text-semibold text-xl'>Show Product Variants</h4>
                     <Button>
                       <FiPlus/>
                       <Link href={ADMIN_PRODUCT_VARIANT_ADD}>New Variant</Link>
@@ -59,7 +59,7 @@ const ShowProduct = () => {
                     exportEndpoint="/api/v1/product-variant/export"
                     deleteEndpoint="/api/v1/product-variant"
                     deleteType="SD"
-                    trashView={`${ADMIN_TRASH}?trashof=product-variant`}   
+                    trashView={`${ADMIN_TRASH}?trashof=product_variant`}   
                     createAction={action}
                    />
                 </CardContent>
@@ -68,4 +68,4 @@ const ShowProduct = () => {
   )
 }
 
-export default ShowProduct
+export default ShowProductVariant

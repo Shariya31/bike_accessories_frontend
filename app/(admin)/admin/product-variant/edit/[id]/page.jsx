@@ -6,83 +6,85 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Field, FieldError, FieldGroup, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { Controller, useForm } from 'react-hook-form'
-import { ADMIN_DASHBOARD, ADMIN_PRODUCT_SHOW } from '@/routes/AdminPannelRoute'
+import { ADMIN_DASHBOARD, ADMIN_PRODUCT_VARIANT_SHOW } from '@/routes/AdminPannelRoute'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { zSchema } from '@/lib/zodSchema'
 import slugify from 'slugify'
 import { showToast } from '@/lib/showToast'
-import { useGetCategory } from '@/hooks/category/useGetCategory'
 import Select from '@/components/application/Select/Select'
 import Editor from '@/components/application/admin/Editor'
 import MediaModal from '@/components/application/admin/MediaModal'
 import Image from 'next/image'
 import { useCreateProduct } from '@/hooks/product/useCreateProduct'
 import { useGetProductById } from '@/hooks/product/useGetProductById'
-import { useUpdateProduct } from '@/hooks/product/useUpdateProduct'
+import { useUpdateProductVariant } from '@/hooks/product-variant/useUpdateProductVariant'
+import { useGetProductVariantById } from '@/hooks/product-variant/useGetProductVariantById'
+import { useGetProduct } from '@/hooks/product/useGetProduct'
+import { sizes } from '@/lib/utils'
 
 const breadcrumbData = [
   {
     href: ADMIN_DASHBOARD, label: 'Home',
   },
   {
-    href: ADMIN_PRODUCT_SHOW, label: 'Product',
+    href: ADMIN_PRODUCT_VARIANT_SHOW, label: 'Product Variant',
   },
   {
-    href: '', label: 'Edit Product',
+    href: '', label: 'Edit Product Variant',
   }
 ]
 
-const EditProduct = ({ params }) => {
+const EditProductVariant = ({ params }) => {
   const { id } = use(params)
   const [loading, setLoading] = useState(false)
-  const [categoryOptions, setCategoryOptions] = useState([])
+  const [productOptions, setProductOptions] = useState([])
   const { mutateAsync: createProduct, isPending } = useCreateProduct()
-  const { data: categoryList, isLoading, isError, } = useGetCategory({ limit: 100, deleteType: 'SD' })
+  const { data: productList, isLoading, isError, } = useGetProduct({ limit: 100, deleteType: 'SD' })
 
   // media modal states
   const [open, setOpen] = useState(false)
   const [selectedMedia, setSelectedMedia] = useState([])
 
-  const updateMutation = useUpdateProduct()
-  const { data: productData, isLoading: productDataLoading } = useGetProductById(id)
+  const updateMutation = useUpdateProductVariant()
+  const { data: productVariantData, isLoading: productVariantDataLoading } = useGetProductVariantById(id)
 
   const formSchema = zSchema.pick({
     _id: true,
-    name: true,
-    slug: true,
-    category: true,
+    product: true,
+    sku: true,
+    color: true,
+    size: true,
     mrp: true,
     sellingPrice: true,
     discountPercentage: true,
-    description: true
   })
 
   const form = useForm({
     resolver: zodResolver(formSchema),
     defaultValues: {
       _id: id,
-      name: '',
-      slug: '',
-      category: '',
+      product: '',
+      sku: '',
+      color: '',
+      size: '',
       mrp: '',
       sellingPrice: '',
       discountPercentage: '',
-      description: '',
     },
   });
 
   useEffect(() => {
-    if (productData && productData?.data?.success) {
-      const data = productData?.data?.data
+    if (productVariantData && productVariantData?.data?.success) {
+      const data = productVariantData?.data?.data
       form.reset({
         _id: data?._id,
-        name: data?.name,
-        slug: data?.slug,
-        category: data?.category,
+        product: data?.product,
+        sku: data?.sku,
+        color: data?.color,
+        size: data?.size,
         mrp: data?.mrp,
         sellingPrice: data?.sellingPrice,
         discountPercentage: data?.discountPercentage,
-        description: data?.description,
       })
 
       if (data?.media) {
@@ -96,14 +98,7 @@ const EditProduct = ({ params }) => {
       }
 
     }
-  }, [productData])
-
-  useEffect(() => {
-    const name = form.getValues('name');
-    if (name) {
-      form.setValue('slug', slugify(name).toLowerCase())
-    }
-  }, [form.watch('name')])
+  }, [productVariantData])
 
   // discount percentage calculation
 
@@ -118,18 +113,18 @@ const EditProduct = ({ params }) => {
   }, [form.watch('mrp'), form.watch('sellingPrice')])
 
   useEffect(() => {
-    if (categoryList && categoryList.pages[0].success) {
-      const data = categoryList.pages[0].data
-      const options = data.map((cat) => ({
-        label: cat.name,
-        value: cat._id
+    if (productList && productList.pages[0].success) {
+      const data = productList.pages[0].data
+      const options = data.map((product) => ({
+        label: product.name,
+        value: product._id
       }))
 
-      setCategoryOptions(options)
+      setProductOptions(options)
     }
-    console.log(categoryOptions, '74')
+    console.log(productOptions, '74')
 
-  }, [categoryList]);
+  }, [productList]);
 
   const editor = (event, editor) => {
     const data = editor.getData()
@@ -146,7 +141,7 @@ const EditProduct = ({ params }) => {
       const mediaIds = selectedMedia.map(media => media._id)
 
       values.media = mediaIds
-  
+
       // const { data: response } = await createProduct({
       //   payload: values
       // })
@@ -195,50 +190,72 @@ const EditProduct = ({ params }) => {
             <div className='grid md:grid-cols-2 gap-5'>
               <div className='grid grid-cols-2 md:grid-cols-2 gap-5'>
 
+                {/* Product */}
                 <FieldGroup>
-                  {/* Name */}
                   <Controller
-                    name="name"
+                    name="product"
                     control={form.control}
                     render={({ field, fieldState }) => (
                       <Field data-invalid={fieldState.invalid}>
-                        <FieldLabel>Name <span className='text-red-500'>*</span></FieldLabel>
-                        <Input {...field} type="text" placeholder='Enter Name' />
-                        {fieldState.error && (
-                          <FieldError errors={[fieldState.error]} />
-                        )}
-                      </Field>
-                    )}
-                  />
-                </FieldGroup>
-
-                <FieldGroup>
-                  {/* Slug */}
-                  <Controller
-                    name="slug"
-                    control={form.control}
-                    render={({ field, fieldState }) => (
-                      <Field data-invalid={fieldState.invalid}>
-                        <FieldLabel>Slug<span className='text-red-500'>*</span></FieldLabel>
-                        <Input {...field} type="text" placeholder='Enter Slug' />
-                        {fieldState.error && (
-                          <FieldError errors={[fieldState.error]} />
-                        )}
-                      </Field>
-                    )}
-                  />
-                </FieldGroup>
-
-                {/* category */}
-                <FieldGroup>
-                  <Controller
-                    name="category"
-                    control={form.control}
-                    render={({ field, fieldState }) => (
-                      <Field data-invalid={fieldState.invalid}>
-                        <FieldLabel>Category<span className='text-red-500'>*</span></FieldLabel>
+                        <FieldLabel>Product<span className='text-red-500'>*</span></FieldLabel>
                         <Select
-                          options={categoryOptions}
+                          options={productOptions}
+                          selected={field.value}
+                          setSelected={field.onChange}
+                          isMulti={false}
+                        />
+                        {fieldState.error && (
+                          <FieldError errors={[fieldState.error]} />
+                        )}
+                      </Field>
+                    )}
+                  />
+                </FieldGroup>
+
+                {/* SKU */}
+                <FieldGroup>
+                  <Controller
+                    name="sku"
+                    control={form.control}
+                    render={({ field, fieldState }) => (
+                      <Field data-invalid={fieldState.invalid}>
+                        <FieldLabel>SKU <span className='text-red-500'>*</span></FieldLabel>
+                        <Input {...field} type="text" placeholder='Enter SKU' />
+                        {fieldState.error && (
+                          <FieldError errors={[fieldState.error]} />
+                        )}
+                      </Field>
+                    )}
+                  />
+                </FieldGroup>
+
+                {/* COLOR */}
+                <FieldGroup>
+                  <Controller
+                    name="color"
+                    control={form.control}
+                    render={({ field, fieldState }) => (
+                      <Field data-invalid={fieldState.invalid}>
+                        <FieldLabel>Color<span className='text-red-500'>*</span></FieldLabel>
+                        <Input {...field} type="text" placeholder='Enter Color' />
+                        {fieldState.error && (
+                          <FieldError errors={[fieldState.error]} />
+                        )}
+                      </Field>
+                    )}
+                  />
+                </FieldGroup>
+
+                {/* SIZE */}
+                <FieldGroup>
+                  <Controller
+                    name="size"
+                    control={form.control}
+                    render={({ field, fieldState }) => (
+                      <Field data-invalid={fieldState.invalid}>
+                        <FieldLabel>Size<span className='text-red-500'>*</span></FieldLabel>
+                        <Select
+                          options={sizes}
                           selected={field.value}
                           setSelected={field.onChange}
                           isMulti={false}
@@ -304,24 +321,6 @@ const EditProduct = ({ params }) => {
                 </FieldGroup>
               </div>
 
-              {/* Description*/}
-              <FieldGroup>
-                <Controller
-                  name="description"
-                  control={form.control}
-                  render={({ field, fieldState }) => (
-                    <Field data-invalid={fieldState.invalid}>
-                      <FieldLabel>Description<span className='text-red-500'>*</span></FieldLabel>
-                      {!productDataLoading &&
-                        <Editor onChange={editor} initialData={field.value} />
-                      }
-                      {fieldState.error && (
-                        <FieldError errors={[fieldState.error]} />
-                      )}
-                    </Field>
-                  )}
-                />
-              </FieldGroup>
             </div>
 
             <div className='md:col-span-2 border border-dashed rounded p-5 text-center'>
@@ -368,4 +367,4 @@ const EditProduct = ({ params }) => {
   )
 }
 
-export default EditProduct
+export default EditProductVariant

@@ -13,19 +13,19 @@ export const createProductVariantApi = (data) =>
   API.post("/api/v1/product-variant/create", data);
 
 export const getProductVariantById = (id) =>
-  API.get(`/api/v1/product/get-product-variant/${id}`)
+  API.get(`/api/v1/product-variant/get-product-variant/${id}`)
 
-export const updateProductVariantApi = async ({ _id, name, slug, category, mrp, sellingPrice, discountPercentage, description, media }) => {
+export const updateProductVariantApi = async ({ _id, product, sku, color, size, mrp, sellingPrice, discountPercentage, media }) => {
   const { data } = await API.put(`/api/v1/product-variant/update`, {
     payload: {
       _id,
-      name,
-      slug,
-      category,
+      product,
+      sku,
+      color,
+      size,
       mrp,
       sellingPrice,
       discountPercentage,
-      description,
       media,
     }
   })
