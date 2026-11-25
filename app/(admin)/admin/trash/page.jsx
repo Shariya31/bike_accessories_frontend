@@ -48,7 +48,15 @@ const TRASH_CONFIG = {
     fetchUrl: '/api/v1/product-variant',
     exportUrl: '/api/v1/product-variant/export',
     deleteUrl: '/api/v1/product-variant'
-  }
+  },
+  coupon: {
+    title: 'Coupon Trash',
+    columns: DT_PRODUCT_COLUMN,
+    queryKey: QUERY_KEYS.COUPON,
+    fetchUrl: '/api/v1/coupon',
+    exportUrl: '/api/v1/coupon/export',
+    deleteUrl: '/api/v1/coupon'
+  },
 }
 const Trash = () => {
   const searchParams = useSearchParams()

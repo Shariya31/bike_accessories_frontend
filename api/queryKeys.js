@@ -5,4 +5,5 @@ export const QUERY_KEYS = {
   CART: ["cart"],
   MEDIA: ["media"],
   CATEGORY: ["category"],
+  COUPON: ["coupon"]
 };
