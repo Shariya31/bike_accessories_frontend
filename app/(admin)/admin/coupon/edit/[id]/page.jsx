@@ -6,28 +6,23 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Field, FieldError, FieldGroup, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { Controller, useForm } from 'react-hook-form'
-import { ADMIN_DASHBOARD, ADMIN_PRODUCT_SHOW } from '@/routes/AdminPannelRoute'
+import { ADMIN_COUPON_SHOW, ADMIN_DASHBOARD } from '@/routes/AdminPannelRoute'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { zSchema } from '@/lib/zodSchema'
-import slugify from 'slugify'
 import { showToast } from '@/lib/showToast'
-import { useGetCategory } from '@/hooks/category/useGetCategory'
-import Select from '@/components/application/Select/Select'
-import Editor from '@/components/application/admin/Editor'
-import MediaModal from '@/components/application/admin/MediaModal'
-import Image from 'next/image'
 import { useUpdateCoupon } from '@/hooks/coupon/useUpdateCoupon'
 import { useGetCouponById } from '@/hooks/coupon/useGetCouponById'
+import dayjs from 'dayjs'
 
 const breadcrumbData = [
     {
         href: ADMIN_DASHBOARD, label: 'Home',
     },
     {
-        href: ADMIN_PRODUCT_SHOW, label: 'Product',
+        href: ADMIN_COUPON_SHOW, label: 'Coupon',
     },
     {
-        href: '', label: 'Edit Product',
+        href: '', label: 'Edit Coupon',
     }
 ]
 
@@ -53,7 +48,7 @@ const EditCoupon = ({ params }) => {
             code: '',
             discountPercentage: '',
             minShoppingAmount: '',
-            validity: '',
+            validity: 0,
 
         },
     });
@@ -66,7 +61,7 @@ const EditCoupon = ({ params }) => {
                 code: data?.code,
                 discountPercentage: data?.discountPercentage,
                 minShoppingAmount: data?.minShoppingAmount,
-                validity: data?.validity,
+                validity: dayjs(data?.validity).format('YYYY-MM-DD'),
             })
         }
     }, [couponData])
@@ -90,7 +85,7 @@ const EditCoupon = ({ params }) => {
             // if (!response.success) {
             //   throw new Error(response.message, 'Unable to update product')
             // }
-            form.reset()
+            // form.reset()
             // showToast('success', response.message)
         } catch (error) {
             showToast('error',
@@ -118,7 +113,7 @@ const EditCoupon = ({ params }) => {
                         className="space-y-4 mt-6"
                     >
 
-                        <div className='grid md:grid-cols-2 gap-5'>
+                        <div className='grid md:grid-cols-1 gap-5'>
                             <div className='grid grid-cols-2 md:grid-cols-2 gap-5'>
                                 <FieldGroup>
                                     {/* Code */}

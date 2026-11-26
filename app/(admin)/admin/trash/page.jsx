@@ -6,7 +6,7 @@ import DeleteAction from '@/components/application/admin/DeleteAction'
 import EditAction from '@/components/application/admin/EditAction'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
-import { DT_CATEGORY_COLUMN, DT_PRODUCT_COLUMN, DT_PRODUCT_VARIANT_COLUMN } from '@/lib/column'
+import { DT_CATEGORY_COLUMN, DT_COUPON_COLUMN, DT_PRODUCT_COLUMN, DT_PRODUCT_VARIANT_COLUMN } from '@/lib/column'
 import { columnConfig } from '@/lib/helperFunction'
 import { ADMIN_CATEGORY_ADD, ADMIN_CATEGORY_EDIT, ADMIN_CATEGORY_SHOW, ADMIN_DASHBOARD, ADMIN_TRASH } from '@/routes/AdminPannelRoute'
 import Link from 'next/link'
@@ -51,7 +51,7 @@ const TRASH_CONFIG = {
   },
   coupon: {
     title: 'Coupon Trash',
-    columns: DT_PRODUCT_COLUMN,
+    columns: DT_COUPON_COLUMN,
     queryKey: QUERY_KEYS.COUPON,
     fetchUrl: '/api/v1/coupon',
     exportUrl: '/api/v1/coupon/export',

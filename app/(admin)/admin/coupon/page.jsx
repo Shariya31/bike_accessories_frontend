@@ -6,7 +6,7 @@ import DeleteAction from '@/components/application/admin/DeleteAction'
 import EditAction from '@/components/application/admin/EditAction'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
-import { DT_PRODUCT_COLUMN } from '@/lib/column'
+import { DT_COUPON_COLUMN } from '@/lib/column'
 import { columnConfig } from '@/lib/helperFunction'
 import { ADMIN_COUPON_ADD, ADMIN_COUPON_EDIT, ADMIN_COUPON_SHOW, ADMIN_DASHBOARD, ADMIN_TRASH } from '@/routes/AdminPannelRoute'
 import Link from 'next/link'
@@ -25,7 +25,7 @@ const breadcrumbData = [
 const ShowCoupon = () => {
 
   const columns = useMemo(() => {
-    return columnConfig(DT_PRODUCT_COLUMN)
+    return columnConfig(DT_COUPON_COLUMN)
   }, [])
 
   const action = useCallback((row, deleteType, handleDelete) => {
